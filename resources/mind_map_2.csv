@@ -1,0 +1,11 @@
+analysis_type,sample_question,sub_questions,question_number
+decomposition analysis,Give me decomposition analysis of GSV by profit center for year 2023 period 1?,Give percentage contribution of Profit center in GSV for year 2023 period 1 (2023001),1
+decomposition analysis,Give me decomposition analysis of GSV by profit center for year 2023 period 1?,"What was the dollar value contribution of the Profit Center component to GSV from Period 13, Year 2022 (2022013) to Period 1, Year 2023 (2023001)?",2
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,Show me the trend of GSV for Period 1 of the year 2023 (2023001) along with confidence interval high and low.,1
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,Compare the GSV for Period 1 of the year 2023 (2023001) with Period 1 of the last two years (2022 and 2021) (2022001 and 2021001).,2
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,Calculate how much the GSV for Period 1 of the year 2023 (2023001) deviates from its confidence interval.,3
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,What is the 26 rolling average for GSV year 2023 period 1 (2023001)?,4
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,How much did the GSV in Period 13 of 2022 (2022013) differ from the GSV in Period 1 of 2023 (2023001)?,5
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,Compare the GSV for Period 1 of the year 2023 (2023001) with the GSV for Period 1 of the year 2022 (2022001).,6
+variance analysis,Give me variance analysis of GSV for year 2023 period 1,What was the dollar value contribution of the Profit Center component to GSV from Period 13 of the year 2022 (2022013) to Period 1 of the year 2023 (2023001)?,1
+variance analysis,Give me variance analysis of GSV for year 2023 period 1,What is the percentage change in GSV for Period 1 of the year 2023 (2023001) compared to Period 1 of the year 2022 (2022001)?,2

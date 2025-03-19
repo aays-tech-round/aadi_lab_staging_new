@@ -1,0 +1,3942 @@
+﻿Questions,Query
+Highlight The Periods For Which Depreciation Is Out Of Confidence Interval During Year 2022,"SELECT YearPeriod, [Amount%], ConfindenceHigh, Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(TradeAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(TradeAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'R Depreciation' THEN Amount
+ELSE 0
+END AS TradeAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('R Depreciation',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE ([Amount%] < Confindencelow
+or [Amount%] > ConfindenceHigh)
+AND YearPeriod LIKE '2022%'"
+Highlight The Periods For Which Depreciation Is Out Of Confidence Interval During Year 2022 and 2023,"SELECT YearPeriod, [Amount%], ConfindenceHigh,Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(RDepAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(RDepAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'R Depreciation' THEN Amount
+ELSE 0
+END AS RDepAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('R Depreciation',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE ([Amount%] < Confindencelow
+or [Amount%] > ConfindenceHigh)
+AND (YearPeriod LIKE '2022%' or YearPeriod LIKE '2023%')"
+What Is My  depreciation As Percentage Of GSV For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM(DepreciationAmount) as Depreciation,
+SUM(""GSV Amount"") as GSV,
+ROUND(Sum(DepreciationAmount)/Sum(""GSV Amount"")*100,2) as ""Depreciation%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'R Depreciation' Then Amount
+Else 0
+END As ""DepreciationAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('R Depreciation',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023001
+Group by subquery.YearPeriod"
+What Is My  depreciation As Percentage Of GSV For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM(DepreciationAmount) as Depreciation,
+SUM(""GSV Amount"") as GSV,
+ROUND(Sum(DepreciationAmount)/Sum(""GSV Amount"")*100,2) as ""Depreciation%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'R Depreciation' Then Amount
+Else 0
+END As ""DepreciationAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('R Depreciation',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023013
+Group by subquery.YearPeriod"
+What Is My depreciation For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM(DepreciationAmount) as Depreciation,
+SUM(""GSV Amount"") as GSV,
+Sum(DepreciationAmount)/Sum(""GSV Amount"") as ""Depreciation%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'R Depreciation' Then Amount
+Else 0
+END As ""DepreciationAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('R Depreciation',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023001
+Group by subquery.YearPeriod"
+What Is My  depreciation For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM(DepreciationAmount) as Depreciation,
+SUM(""GSV Amount"") as GSV,
+Sum(DepreciationAmount)/Sum(""GSV Amount"") as ""Depreciation%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'R Depreciation' Then Amount
+Else 0
+END As ""DepreciationAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('R Depreciation',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023013
+Group by subquery.YearPeriod"
+Show Me The Trend Of Depreciation As Percentage Of GSV Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+Amount AS Depreciation,
+ROUND([Amount%],2) AS 'Depreciation%',
+ROUND(ConfidenceHigh,2) AS 'ConfidenceHigh',
+ROUND(Confidencelow,2) AS 'Confidencelow'
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(DepreciationAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(DepreciationAmount)/SUM([GSV Amount])*100 AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'R Depreciation' THEN Amount
+ELSE 0
+END AS DepreciationAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('R Depreciation',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Show Me The Trend Of Depreciation Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+Amount AS Depreciation,
+[Amount%] AS 'Depreciation%',
+ConfindenceHigh,
+Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(DepreciationAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(DepreciationAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'R Depreciation' THEN Amount
+ELSE 0
+END AS DepreciationAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('R Depreciation',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Compare The Depreciation For YearPeriod 2023001 With Same Period Last Year,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.DepreciationAmount AS CurrentDepreciation,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.DepreciationAmount AS PreviousDepreciation,
+current_period.DepreciationAmount - previous_period.DepreciationAmount AS Depreciation_Difference,
+(current_period.DepreciationAmount - previous_period.DepreciationAmount)*100/previous_period.DepreciationAmount AS 'Depreciation_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS DepreciationAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'R Depreciation'
+AND YearPeriod = 2023001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS DepreciationAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'R Depreciation'
+AND YearPeriod = 2022001
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022001;"
+Compare The Depreciation For YearPeriod 2023001 With previous Period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.DepreciationAmount AS CurrentDepreciation,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.DepreciationAmount AS PreviousDepreciation,
+current_period.DepreciationAmount - previous_period.DepreciationAmount AS Depreciation_Difference,
+(current_period.DepreciationAmount - previous_period.DepreciationAmount)*100/previous_period.DepreciationAmount AS 'Depreciation_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS DepreciationAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'R Depreciation'
+AND YearPeriod = 2023001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS DepreciationAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'R Depreciation'
+AND YearPeriod = 2022013
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022013;"
+Compare The Depreciation For YearPeriod 2023007 With previous Period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.DepreciationAmount AS CurrentDepreciation,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.DepreciationAmount AS PreviousDepreciation,
+current_period.DepreciationAmount - previous_period.DepreciationAmount AS Depreciation_Difference,
+(current_period.DepreciationAmount - previous_period.DepreciationAmount)*100/previous_period.DepreciationAmount AS 'Depreciation_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS DepreciationAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'R Depreciation'
+AND YearPeriod = 2023007
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS DepreciationAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'R Depreciation'
+AND YearPeriod = 2023006
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023007
+AND previous_period.YearPeriod = 2023006;"
+What Is My Depreciation  YTD for 2023 period 3,"SELECT
+SUM(TotalDepreciation) as 'TotalDepreciationYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalDepreciation'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'R Depreciation'  AND ad.YearPeriod BETWEEN '2023001' AND '2023003'
+	GROUP BY YearPeriod
+) as subset"
+What Is My Depreciation YTD for 2023 period 13,"SELECT
+SUM(TotalDepreciation) as 'TotalDepreciationYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalDepreciation'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'R Depreciation'  AND ad.YearPeriod BETWEEN '2023001' AND '2023013'
+	GROUP BY YearPeriod
+) as subset"
+What Is My Depreciation YTD,"SELECT
+SUM(TotalDepreciation) as 'TotalDepreciationYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalDepreciation'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'R Depreciation'  AND ad.YearPeriod BETWEEN FORMAT(CURRENT_TIMESTAMP,'yyyy')+'001' 
+	AND FORMAT(CURRENT_TIMESTAMP,'yyyy')+RIGHT(REPLICATE('0',3)+FORMAT(CURRENT_TIMESTAMP,'MM'),3)
+	GROUP BY YearPeriod
+) as subset"
+compare Depreciation at YTD level for 2023 period 3 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalDepreciation) as 'YTD_2023003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalDepreciation'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'R Depreciation'  AND ad.YearPeriod BETWEEN '2023001' AND '2023003'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalDepreciation) as 'YTD_2022003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalDepreciation'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'R Depreciation'  AND ad.YearPeriod BETWEEN '2022001' AND '2022003'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023003,
+YTD_2022003,
+((YTD_2023003 - YTD_2022003) / YTD_2022003)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+CompareDepreciation at YTD level for 2023 period 13 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalDepreciation) as 'YTD_2023013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalDepreciation'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'R Depreciation'  AND ad.YearPeriod BETWEEN '2023001' AND '2023013'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalDepreciation) as 'YTD_2022013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalDepreciation'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'R Depreciation'  AND ad.YearPeriod BETWEEN '2022001' AND '2022013'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023013,
+YTD_2022013,
+((YTD_2023013 - YTD_2022013) / YTD_2022013)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+Highlight The Periods For Which Trade cost Is Out Of Confidence Interval During Year 2022,"SELECT YearPeriod, [Amount%], ConfindenceHigh, Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(TradeAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(TradeAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE ([Amount%] < Confindencelow
+or [Amount%] > ConfindenceHigh)
+AND YearPeriod LIKE '2022%'"
+Highlight The Periods For Which Trade cost Is Out Of Confidence Interval During Year 2022 and 2023,"SELECT YearPeriod, [Amount%], ConfindenceHigh, Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(TradeAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(TradeAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE ([Amount%] < Confindencelow
+or [Amount%] > ConfindenceHigh)
+AND (YearPeriod LIKE '2022%' OR YearPeriod LIKE '2023%')"
+What Is My  trade cost As Percentage Of GSV For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM(TradeCostsAmount) as TradeCost,
+SUM(""GSV Amount"") as GSV,
+ROUND(Sum(TradeCostsAmount)/Sum(""GSV Amount"")*100,2) as ""TradeCost%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'Trade' Then Amount
+Else 0
+END As ""TradeCostsAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('Trade',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023001
+Group by subquery.YearPeriod"
+What Is My  trade cost As Percentage Of GSV For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM(TradeCostsAmount) as TradeCost,
+SUM(""GSV Amount"") as GSV,
+Sum(TradeCostsAmount)/Sum(""GSV Amount"") as ""TradeCost%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'Trade' Then Amount
+Else 0
+END As ""TradeCostsAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('Trade',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023013
+Group by subquery.YearPeriod"
+What Is My trade cost For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM(TradeCostsAmount) as TradeCost,
+SUM(""GSV Amount"") as GSV,
+Sum(TradeCostsAmount)/Sum(""GSV Amount"") as ""TradeCost%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'Trade' Then Amount
+Else 0
+END As ""TradeCostsAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('Trade',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023001
+Group by subquery.YearPeriod"
+What Is My  trade cost For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM(TradeCostsAmount) as TradeCost,
+SUM(""GSV Amount"") as GSV,
+Sum(TradeCostsAmount)/Sum(""GSV Amount"") as ""TradeCost%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'Trade' Then Amount
+Else 0
+END As ""TradeCostsAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('Trade',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023013
+Group by subquery.YearPeriod"
+Show Me The Trend Of Trade Cost As Percentage Of GSV Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+Amount AS TradeCost,
+ROUND([Amount%],2) AS 'TradeCost%',
+ROUND(ConfidenceHigh,2) AS 'ConfidenceHigh',
+ROUND(Confidencelow,2) AS 'Confidencelow'
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(TradeCostsAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(TradeCostsAmount)/SUM([GSV Amount])*100 AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Show Me The Trend Of Trade Cost Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+Amount AS TradeCost,
+[Amount%] AS 'TradeCost%',
+ConfindenceHigh,
+Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(TradeCostsAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(TradeCostsAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Compare The Trade Cost For YearPeriod 2023001 With Same Period Last Year,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.TradeCostsAmount AS CurrentTradeCosts,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.TradeCostsAmount AS PreviousTradeCosts,
+current_period.TradeCostsAmount - previous_period.TradeCostsAmount AS TradeCosts_Difference,
+(current_period.TradeCostsAmount - previous_period.TradeCostsAmount)*100/previous_period.TradeCostsAmount AS 'TradeCosts_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS TradeCostsAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Trade'
+AND YearPeriod = 2023001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS TradeCostsAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Trade'
+AND YearPeriod = 2022001
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022001;"
+Compare The Trade Cost For YearPeriod 2023001 With previous Period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.TradeCostsAmount AS CurrentTradeCosts,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.TradeCostsAmount AS PreviousTradeCosts,
+current_period.TradeCostsAmount - previous_period.TradeCostsAmount AS TradeCosts_Difference,
+(current_period.TradeCostsAmount - previous_period.TradeCostsAmount)*100/previous_period.TradeCostsAmount AS 'TradeCosts_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS TradeCostsAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Trade'
+AND YearPeriod = 2023001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS TradeCostsAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Trade'
+AND YearPeriod = 2022013
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022013;"
+Compare The Trade Cost For YearPeriod 2023007 With previous Period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.TradeCostsAmount AS CurrentTradeCosts,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.TradeCostsAmount AS PreviousTradeCosts,
+current_period.TradeCostsAmount - previous_period.TradeCostsAmount AS TradeCosts_Difference,
+(current_period.TradeCostsAmount - previous_period.TradeCostsAmount)*100/previous_period.TradeCostsAmount AS 'TradeCosts_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS TradeCostsAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Trade'
+AND YearPeriod = 2023007
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS TradeCostsAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Trade'
+AND YearPeriod = 2023006
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023007
+AND previous_period.YearPeriod = 2023006;"
+What Is My Trade Cost YTD for 2023 period 3,"SELECT
+SUM(TotalTradeCosts) as 'TotalTradeCostsYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalTradeCosts'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Trade'  AND ad.YearPeriod BETWEEN '2023001' AND '2023003'
+	GROUP BY YearPeriod
+) as subset"
+What Is My Trade Cost YTD for 2023 period 13,"""SELECT
+SUM(TotalTradeCosts) as 'TotalTradeCostsYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalTradeCosts'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Trade'  AND ad.YearPeriod BETWEEN '2023001' AND '2023013'
+	GROUP BY YearPeriod
+) as subset"""
+What Is My Trade Cost YTD,"SELECT
+SUM(TotalTradeCosts) as 'TotalTradeCostsYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalTradeCosts'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Trade'  AND ad.YearPeriod BETWEEN FORMAT(CURRENT_TIMESTAMP,'yyyy')+'001' 
+	AND FORMAT(CURRENT_TIMESTAMP,'yyyy')+RIGHT(REPLICATE('0',3)+FORMAT(CURRENT_TIMESTAMP,'MM'),3)
+	GROUP BY YearPeriod
+) as subset"
+compare Trade Cost at YTD level for 2023 period 3 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalTradeCosts) as 'YTD_2023003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalTradeCosts'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Trade'  AND ad.YearPeriod BETWEEN '2023001' AND '2023003'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalTradeCosts) as 'YTD_2022003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalTradeCosts'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Trade'  AND ad.YearPeriod BETWEEN '2022001' AND '2022003'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023003,
+YTD_2022003,
+((YTD_2023003 - YTD_2022003) / YTD_2022003)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+Compare Trade Cost at YTD level for 2023 period 13 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalTradeCosts) as 'YTD_2023013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalTradeCosts'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Trade'  AND ad.YearPeriod BETWEEN '2023001' AND '2023013'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalTradeCosts) as 'YTD_2022013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalTradeCosts'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Trade'  AND ad.YearPeriod BETWEEN '2022001' AND '2022013'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023013,
+YTD_2022013,
+((YTD_2023013 - YTD_2022013) / YTD_2022013)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+Highlight The Periods For Which prime cost Is Out Of Confidence Interval During Year 2022,"SELECT YearPeriod, [Amount%], ConfindenceHigh, Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(PrimeCostsAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(PrimeCostsAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Prime Costs' THEN Amount
+ELSE 0
+END AS PrimeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Prime Costs',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE ([Amount%] < Confindencelow
+or [Amount%] > ConfindenceHigh)
+AND YearPeriod LIKE '2022%'"
+Highlight The Periods For Which Prime Cost sales Is Out Of Confidence Interval During Year 2022 and 2021,"SELECT YearPeriod, [Amount%], ConfindenceHigh, Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(PrimeCostsAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(PrimeCostsAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Prime Costs' THEN Amount
+ELSE 0
+END AS PrimeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Prime Costs',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE ([Amount%] < Confindencelow
+or [Amount%] > ConfindenceHigh)
+AND (YearPeriod LIKE '2022%'
+OR YearPeriod LIKE '2021%')"
+What Is My Prime Cost As Percentage Of GSV For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM(PrimeCostsAmount) AS PrimeCost,
+ROUND((SUM(PrimeCostsAmount) / SUM([GSV Amount])) * 100,2) AS PrimeCostPercentage
+FROM
+(SELECT YearPeriod,
+CASE
+WHEN Level1 = 'Prime Costs' THEN Amount
+ELSE 0
+END AS PrimeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Prime Costs',
+'Total GSV Third Party')
+AND YearPeriod = '2023001'
+GROUP BY YearPeriod;"
+What Is My Prime Cost As Percentage Of GSV For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM(PrimeCostsAmount) AS PrimeCost,
+ROUND((SUM(PrimeCostsAmount) / SUM([GSV Amount])) * 100,2) AS PrimeCostPercentage
+FROM
+(SELECT YearPeriod,
+CASE
+WHEN Level1 = 'Prime Costs' THEN Amount
+ELSE 0
+END AS PrimeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Prime Costs',
+'Total GSV Third Party')
+AND YearPeriod = '2023013'
+GROUP BY YearPeriod;"
+What Is My Prime Cost For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM(PrimeCostsAmount) AS PrimeCost,
+(SUM(PrimeCostsAmount) / SUM([GSV Amount])) * 100 AS PrimeCostPercentage
+FROM
+(SELECT YearPeriod,
+CASE
+WHEN Level1 = 'Prime Costs' THEN Amount
+ELSE 0
+END AS PrimeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Prime Costs',
+'Total GSV Third Party')
+AND YearPeriod = '2023001'
+GROUP BY YearPeriod;"
+What Is My Prime Cost For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM(PrimeCostsAmount) AS PrimeCost,
+(SUM(PrimeCostsAmount) / SUM([GSV Amount])) * 100 AS PrimeCostPercentage
+FROM
+(SELECT YearPeriod,
+CASE
+WHEN Level1 = 'Prime Costs' THEN Amount
+ELSE 0
+END AS PrimeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Prime Costs',
+'Total GSV Third Party')
+AND YearPeriod = '2023013'
+GROUP BY YearPeriod;"
+Show Me The Trend Of Prime Cost As Percentage Of GSV Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+Amount AS PrimeCost,
+ROUND([Amount%],2) AS 'PrimeCost%',
+ROUND(ConfidenceHigh,2) AS 'ConfidenceHigh',
+ROUND(Confidencelow,2) AS 'Confidencelow'
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(PrimeCostsAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(PrimeCostsAmount)/SUM([GSV Amount])*100 AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Prime Costs' THEN Amount
+ELSE 0
+END AS PrimeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Prime Costs',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Show Me The Trend Of Prime Cost Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+Amount AS PrimeCost,
+[Amount%] AS 'PrimeCost%',
+ConfindenceHigh,
+Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(PrimeCostsAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(PrimeCostsAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Prime Costs' THEN Amount
+ELSE 0
+END AS PrimeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Prime Costs',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Compare The Prime cost For YearPeriod 2023001 With Same Period Last Year,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.PrimeCostsAmount AS CurrentPrimeCosts,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.PrimeCostsAmount AS PreviousPrimeCosts,
+current_period.PrimeCostsAmount - previous_period.PrimeCostsAmount AS PrimeCosts_Difference,
+(current_period.PrimeCostsAmount - previous_period.PrimeCostsAmount)*100/previous_period.PrimeCostsAmount AS 'PrimeCosts_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS PrimeCostsAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Prime Costs'
+AND YearPeriod = 2023001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS PrimeCostsAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Prime Costs'
+AND YearPeriod = 2022001
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022001;"
+Compare The Prime For YearPeriod 2023001 With previous Period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.PrimeCostAmount AS CurrentPrimeCost,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.PrimeCostAmount AS PreviousPrimeCost,
+current_period.PrimeCostAmount - previous_period.PrimeCostAmount AS PrimeCost_Difference,
+(current_period.PrimeCostAmount - previous_period.PrimeCostAmount)*100/previous_period.PrimeCostAmount AS 'PrimeCost_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS PrimeCostAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Prime Costs'
+AND YearPeriod = 2023001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS PrimeCostAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Prime Costs'
+AND YearPeriod = 2022013
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022013;"
+Compare The Prime For YearPeriod 2023007 With previous Period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.PrimeCostAmount AS CurrentPrimeCost,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.PrimeCostAmount AS PreviousPrimeCost,
+current_period.PrimeCostAmount - previous_period.PrimeCostAmount AS PrimeCost_Difference,
+(current_period.PrimeCostAmount - previous_period.PrimeCostAmount)*100/previous_period.PrimeCostAmount AS 'PrimeCost_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS PrimeCostAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Prime Costs'
+AND YearPeriod = 2023007
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS PrimeCostAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Prime Costs'
+AND YearPeriod = 2023006
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023007
+AND previous_period.YearPeriod = 2023006;"
+What Is My Prime Cost YTD for 2023 period 3,"SELECT
+SUM(TotalPrimeCosts) as 'TotalPrimeCostsYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalPrimeCosts'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'  AND ad.YearPeriod BETWEEN '2023001' AND '2023003'
+	GROUP BY YearPeriod
+) as subset"
+What Is My Prime Cost YTD for 2023 period 13,"SELECT
+SUM(TotalPrimeCosts) as 'TotalPrimeCostsYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalPrimeCosts'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'  AND ad.YearPeriod BETWEEN '2023001' AND '2023013'
+	GROUP BY YearPeriod
+) as subset"
+What Is My Prime Cost YTD,"SELECT
+SUM(TotalPrimeCosts) as 'TotalPrimeCostsYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalPrimeCosts'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'  AND ad.YearPeriod BETWEEN FORMAT(CURRENT_TIMESTAMP,'yyyy')+'001' 
+	AND FORMAT(CURRENT_TIMESTAMP,'yyyy')+RIGHT(REPLICATE('0',3)+FORMAT(CURRENT_TIMESTAMP,'MM'),3)
+	GROUP BY YearPeriod
+) as subset"
+compare Prime Cost at YTD level for 2023 period 3 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalPrimeCosts) as 'YTD_2023003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalPrimeCosts'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Prime Costs'  AND ad.YearPeriod BETWEEN '2023001' AND '2023003'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalPrimeCosts) as 'YTD_2022003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalPrimeCosts'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Prime Costs'  AND ad.YearPeriod BETWEEN '2022001' AND '2022003'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023003,
+YTD_2022003,
+((YTD_2023003 - YTD_2022003) / YTD_2022003)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+compare Prime Cost at YTD level for 2023 period 13 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalPrimeCosts) as 'YTD_2023013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalPrimeCosts'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Prime Costs'  AND ad.YearPeriod BETWEEN '2023001' AND '2023013'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalPrimeCosts) as 'YTD_2022013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalPrimeCosts'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Prime Costs'  AND ad.YearPeriod BETWEEN '2022001' AND '2022013'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023013,
+YTD_2022013,
+((YTD_2023013 - YTD_2022013) / YTD_2022013)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+Compare The GSV For YearPeriod 2023001 With Same Period Last Year,"SELECT current_year.YearPeriod AS CurrentYearPeriod,
+current_year.GSV AS CurrentYearGSV,
+previous_year.YearPeriod AS PreviousYearPeriod,
+previous_year.GSV AS PreviousYearGSV,
+current_year.GSV - previous_year.GSV AS GSV_Difference,
+(current_year.GSV - previous_year.GSV)*100/previous_year.GSV AS 'GSV_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM([GSV Amount]) AS GSV
+FROM
+(SELECT YearPeriod,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+WHERE hierarchy.Level1 = 'Total GSV Third Party' ) AS subquery
+GROUP BY YearPeriod) AS current_year
+JOIN
+(SELECT YearPeriod,
+SUM([GSV Amount]) AS GSV
+FROM
+(SELECT YearPeriod,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+WHERE hierarchy.Level1 = 'Total GSV Third Party' ) AS subquery
+GROUP BY YearPeriod) AS previous_year ON current_year.YearPeriod = '2023001'
+AND previous_year.YearPeriod = '2022001';"
+Highlight The Periods For Which Affiliate sales Is Out Of Confidence Interval During Year 2022,"SELECT YearPeriod,
+Amount AS AffiliateSales,
+[Amount%] AS 'AffiliateSales%',
+ConfindenceHigh,
+Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(AffiliateSalesAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(AffiliateSalesAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Affiliate Sales' THEN Amount
+ELSE 0
+END AS AffiliateSalesAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Affiliate Sales',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2022%'"
+Highlight The Periods For Which Affiliate sales Is Out Of Confidence Interval During Year 2022 and 2021,"SELECT YearPeriod,
+Amount AS AffiliateSales,
+[Amount%] AS 'AffiliateSales%',
+ConfindenceHigh,
+Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(AffiliateSalesAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(AffiliateSalesAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Affiliate Sales' THEN Amount
+ELSE 0
+END AS AffiliateSalesAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Affiliate Sales',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE (YearPeriod LIKE '2022%' or YearPeriod LIKE '2021%')"
+What Is My Affiliate sales As Percentage Of GSV For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM(AffiliateSalesAmount) as AffiliateSales,
+SUM(""GSV Amount"") as GSV,
+ROUND(Sum(AffiliateSalesAmount)/Sum(""GSV Amount"")*100,2) as ""AffiliateSales%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'Affiliate Sales' Then Amount
+Else 0
+END As ""AffiliateSalesAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('Affiliate Sales',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023001
+Group by subquery.YearPeriod"
+What Is My Affiliate sales As Percentage Of GSV For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM(AffiliateSalesAmount) as AffiliateSales,
+SUM(""GSV Amount"") as GSV,
+ROUND(Sum(AffiliateSalesAmount)/Sum(""GSV Amount"")*100,2) as ""AffiliateSales%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'Affiliate Sales' Then Amount
+Else 0
+END As ""AffiliateSalesAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('Affiliate Sales',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023013
+Group by subquery.YearPeriod"
+What Is My Affiliate sales For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM(AffiliateSalesAmount) as AffiliateSales,
+SUM(""GSV Amount"") as GSV,
+Sum(AffiliateSalesAmount)/Sum(""GSV Amount"") as ""AffiliateSales%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'Affiliate Sales' Then Amount
+Else 0
+END As ""AffiliateSalesAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('Affiliate Sales',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023001
+Group by subquery.YearPeriod"
+What Is My Affiliate sales For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM(AffiliateSalesAmount) as AffiliateSales,
+SUM(""GSV Amount"") as GSV,
+Sum(AffiliateSalesAmount)/Sum(""GSV Amount"") as ""AffiliateSales%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level1 = 'Affiliate Sales' Then Amount
+Else 0
+END As ""AffiliateSalesAmount"",
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level1 in ('Affiliate Sales',
+'Total GSV Third Party')
+and subquery.YearPeriod = 2023013
+Group by subquery.YearPeriod"
+Show Me The Trend Of Affiliate sales As Percentage Of GSV Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+Amount AS AffiliateSales,
+[Amount%] AS 'AffiliateSales%',
+ROUND(ConfidenceHigh,2) AS 'ConfidenceHigh',
+ROUND(Confidencelow,2) AS 'Confidencelow'
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(AffiliateSalesAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(AffiliateSalesAmount)/SUM([GSV Amount])*100 AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Affiliate Sales' THEN Amount
+ELSE 0
+END AS AffiliateSalesAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Affiliate Sales',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Show Me The Trend Of Affiliate sales Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+Amount AS AffiliateSales,
+[Amount%] AS 'AffiliateSales%',
+ConfindenceHigh,
+Confindencelow
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT YearPeriod,
+SUM(AffiliateSalesAmount) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(AffiliateSalesAmount)/SUM([GSV Amount]) AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Affiliate Sales' THEN Amount
+ELSE 0
+END AS AffiliateSalesAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Affiliate Sales',
+'Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Compare The Affiliate sales For YearPeriod 2023001 With Same Period Last Year,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.AffiliateSalesAmount AS CurrentAffiliateSales,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.AffiliateSalesAmount AS PreviousAffiliateSales,
+current_period.AffiliateSalesAmount - previous_period.AffiliateSalesAmount AS AffiliateSales_Difference,
+(current_period.AffiliateSalesAmount - previous_period.AffiliateSalesAmount)*100/previous_period.AffiliateSalesAmount AS 'AffiliateSales_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS AffiliateSalesAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Affiliate Sales'
+AND YearPeriod = 2023001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS AffiliateSalesAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Affiliate Sales'
+AND YearPeriod = 2022013
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022013;"
+Compare The Affiliate sales For YearPeriod 2023001 With previous Period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.AffiliateSalesAmount AS CurrentAffiliateSales,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.AffiliateSalesAmount AS PreviousAffiliateSales,
+current_period.AffiliateSalesAmount - previous_period.AffiliateSalesAmount AS AffiliateSales_Difference,
+(current_period.AffiliateSalesAmount - previous_period.AffiliateSalesAmount)*100/previous_period.AffiliateSalesAmount AS 'AffiliateSales_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS AffiliateSalesAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Affiliate Sales'
+AND YearPeriod = 2023001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS AffiliateSalesAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Affiliate Sales'
+AND YearPeriod = 2022013
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022013;"
+Compare The Affiliate sales For YearPeriod 2023007 With previous Period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.AffiliateSalesAmount AS CurrentAffiliateSales,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.AffiliateSalesAmount AS PreviousAffiliateSales,
+current_period.AffiliateSalesAmount - previous_period.AffiliateSalesAmount AS AffiliateSales_Difference,
+(current_period.AffiliateSalesAmount - previous_period.AffiliateSalesAmount)*100/previous_period.AffiliateSalesAmount AS 'AffiliateSales_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS AffiliateSalesAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Affiliate Sales'
+AND YearPeriod = 2023007
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS AffiliateSalesAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level1 = 'Affiliate Sales'
+AND YearPeriod = 2023006
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023007
+AND previous_period.YearPeriod = 2023006;"
+What Is My Affiliate Sales YTD for 2023 period 3,"SELECT
+SUM(TotalAffiliateSales) as 'TotalAffiliateSalesYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalAffiliateSales'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Affiliate Sales'  AND ad.YearPeriod BETWEEN '2023001' AND '2023003'
+	GROUP BY YearPeriod
+) as subset"
+What Is My Affiliate Sales YTD for 2023 period 13,"SELECT
+SUM(TotalAffiliateSales) as 'TotalAffiliateSalesYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalAffiliateSales'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Affiliate Sales'  AND ad.YearPeriod BETWEEN '2023001' AND '2023013'
+	GROUP BY YearPeriod
+) as subset"
+What Is My Affiliate Sales YTD,"SELECT
+SUM(TotalAffiliateSales) as 'TotalAffiliateSalesYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalAffiliateSales'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Affiliate Sales'  AND ad.YearPeriod BETWEEN FORMAT(CURRENT_TIMESTAMP,'yyyy')+'001' 
+	AND FORMAT(CURRENT_TIMESTAMP,'yyyy')+RIGHT(REPLICATE('0',3)+FORMAT(CURRENT_TIMESTAMP,'MM'),3)
+	GROUP BY YearPeriod
+) as subset"
+compare Affiliate Sales at YTD level for 2023 period 3 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalAffiliateSales) as 'YTD_2023003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalAffiliateSales'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Affiliate Sales'  AND ad.YearPeriod BETWEEN '2023001' AND '2023003'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalAffiliateSales) as 'YTD_2022003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalAffiliateSales'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Affiliate Sales'  AND ad.YearPeriod BETWEEN '2022001' AND '2022003'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023003,
+YTD_2022003,
+((YTD_2023003 - YTD_2022003) / YTD_2022003)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+Compare Affiliate Sales at YTD level for 2023 period 13 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalAffiliateSales) as 'YTD_2023013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalAffiliateSales'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Affiliate Sales'  AND ad.YearPeriod BETWEEN '2023001' AND '2023013'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalAffiliateSales) as 'YTD_2022013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalAffiliateSales'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Affiliate Sales'  AND ad.YearPeriod BETWEEN '2022001' AND '2022013'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023013,
+YTD_2022013,
+((YTD_2023013 - YTD_2022013) / YTD_2022013)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+provide the difference of prime cost for year 2023 period 1 vs last month and analyse contribution by Profit Center,"with current_period_profit_center as
+(
+	SELECT YearPeriod,
+	ad.Profit_Center_Desc,
+	SUM(Amount) AS CurrentPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod, ad.Profit_Center_Desc
+),
+
+previous_period_profit_center as
+(
+	SELECT YearPeriod,
+	ad.Profit_Center_Desc,
+	SUM(Amount) AS PreviousPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod, ad.Profit_Center_Desc
+
+),
+
+profit_center_combined as
+(
+	select
+	cur.Profit_Center_Desc as 'X_datapoint',
+	CurrentPeriod_PrimeCostAmount-PreviousPeriod_PrimeCostAmount as 'Y_datapoint'
+	from current_period_profit_center cur
+	FULL OUTER JOIN previous_period_profit_center prev ON cur.Profit_Center_Desc = prev.Profit_Center_Desc
+),
+
+previous_period_prime_cost as
+(
+	SELECT 
+	'PreviousPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod
+),
+
+current_period_prime_cost as 
+(
+	SELECT 
+	'CurrentPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+)
+
+select * from profit_center_combined
+UNION
+select * from current_period_prime_cost
+UNION
+select * from previous_period_prime_cost"
+provide the difference of prime cost for year 2023 period 13 vs last month and analyse contribution by Profit Center,"with current_period_profit_center as
+(
+	SELECT YearPeriod,
+	ad.Profit_Center_Desc,
+	SUM(Amount) AS CurrentPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod, ad.Profit_Center_Desc
+),
+
+previous_period_profit_center as
+(
+	SELECT YearPeriod,
+	ad.Profit_Center_Desc,
+	SUM(Amount) AS PreviousPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod, ad.Profit_Center_Desc
+),
+
+profit_center_combined as
+(
+	select
+	cur.Profit_Center_Desc as 'X_datapoint',
+	CurrentPeriod_PrimeCostAmount-PreviousPeriod_PrimeCostAmount as 'Y_datapoint'
+	from current_period_profit_center cur
+	FULL OUTER JOIN previous_period_profit_center prev ON cur.Profit_Center_Desc = prev.Profit_Center_Desc
+),
+
+previous_period_prime_cost as
+(
+	SELECT 
+	'PreviousPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod
+),
+
+current_period_prime_cost as 
+(
+	SELECT 
+	'CurrentPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+)
+select * from profit_center_combined
+UNION 
+select * from current_period_prime_cost
+UNION
+select * from previous_period_prime_cost"
+provide the difference of prime cost for year 2023 period 1 vs last month and analyse by functional area,"with current_period_Func_Area as
+(
+	SELECT YearPeriod,
+	ad.Func_Area_Desc,
+	SUM(Amount) AS CurrentPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod, ad.Func_Area_Desc
+),
+
+previous_period_Func_Area as
+(
+	SELECT YearPeriod,
+	ad.Func_Area_Desc,
+	SUM(Amount) AS PreviousPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod, ad.Func_Area_Desc
+),
+
+Func_Area_combined as
+(
+	select
+	cur.Func_Area_Desc as 'X_datapoint',
+	CurrentPeriod_PrimeCostAmount-PreviousPeriod_PrimeCostAmount as 'Y_datapoint'
+	from current_period_Func_Area cur
+	FULL OUTER JOIN previous_period_Func_Area prev ON cur.Func_Area_Desc = prev.Func_Area_Desc
+),
+
+previous_period_prime_cost as
+(
+	SELECT 
+	'PreviousPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod
+),
+
+current_period_prime_cost as 
+(
+	SELECT 
+	'CurrentPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+)
+select * from Func_Area_combined
+UNION 
+select * from current_period_prime_cost
+UNION
+select * from previous_period_prime_cost"
+Highlight The Periods For Which Total NSV Is Out Of Confidence Interval During Year 2022,"SELECT YearPeriod,
+TotalNSV,
+ConfindenceHigh,
+Confindencelow,
+CASE
+WHEN TotalNSV BETWEEN Confindencelow AND ConfindenceHigh THEN 0
+ELSE 1
+END as IsOutOfConfidenceInterval
+FROM
+(SELECT YearPeriod,
+TotalNSV,
+((AVG([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT 
+YearPeriod,
+SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV,
+SUM([GSV Amount]) AS TotalGSV
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2022%'"
+Highlight The Periods For Which Total NSV sales Is Out Of Confidence Interval During Year 2022 and 2021,"SELECT YearPeriod,
+TotalNSV,
+ConfidenceHigh,
+Confidencelow,
+CASE
+WHEN TotalNSV BETWEEN Confidencelow AND ConfidenceHigh THEN 0
+ELSE 1
+END as IsOutOfConfidenceInterval
+FROM
+(SELECT YearPeriod,
+TotalNSV,
+((AVG([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT 
+YearPeriod,
+SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV,
+SUM([GSV Amount]) AS TotalGSV
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2022%' OR YearPeriod LIKE '2021%'"
+What Is MyTotal NSV As Percentage Of GSV For Period 1 Year 2023?,"SELECT YearPeriod,
+SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV,
+SUM([GSV Amount]) as TotalGSV,
+ROUND((SUM([GSV Amount])-SUM(TradeCostsAmount)) / SUM([GSV Amount]) * 100,2) as NSVPercentage
+FROM
+(SELECT YearPeriod,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+AND YearPeriod = 2023001
+GROUP BY YearPeriod;"
+What Is My Total NSV As Percentage Of GSV For Period 13 Year 2023?,"SELECT YearPeriod,
+SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV,
+SUM([GSV Amount]) as TotalGSV,
+ROUND((SUM([GSV Amount])-SUM(TradeCostsAmount)) / SUM([GSV Amount]) * 100,2) as NSVPercentage
+FROM
+(SELECT YearPeriod,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+AND YearPeriod = 2023013
+GROUP BY YearPeriod;"
+What Is My Total NSV For Period 1 Year 2023?,"select
+(TotalGSV - TotalTradeCost) as 'TotalNSV'
+from 
+(
+	select YearPeriod,
+	SUM(Amount) as 'TotalGSV'
+	from dbo.aggregated_data ad
+	JOIN dbo.hierarchy h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Total GSV Third Party' AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+) as TotalGSV_sq
+INNER JOIN
+(
+	select YearPeriod,
+	SUM(Amount) as 'TotalTradeCost'
+	from dbo.aggregated_data ad
+	JOIN dbo.hierarchy h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Trade' AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+) as TotalTradeCost_sq
+ON TotalGSV_sq.YearPeriod = TotalTradeCost_sq.YearPeriod"
+What Is Total NSV Cost For Period 13 Year 2023?,"select
+(TotalGSV - TotalTradeCost) as 'TotalNSV'
+from 
+(
+	select YearPeriod,
+	SUM(Amount) as 'TotalGSV'
+	from dbo.aggregated_data ad
+	JOIN dbo.hierarchy h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Total GSV Third Party' AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+) as TotalGSV_sq
+INNER JOIN
+(
+	select YearPeriod,
+	SUM(Amount) as 'TotalTradeCost'
+	from dbo.aggregated_data ad
+	JOIN dbo.hierarchy h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Trade' AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+) as TotalTradeCost_sq
+ON TotalGSV_sq.YearPeriod = TotalTradeCost_sq.YearPeriod"
+Show Me The Trend Of Total NSV As Percentage Of GSV Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+TotalNSV,
+[TotalNSV%],
+ROUND(ConfidenceHigh,2) AS 'ConfidenceHigh',
+ROUND(Confidencelow,2) AS 'Confidencelow'
+FROM
+(SELECT YearPeriod,
+TotalNSV,
+[TotalNSV%],
+((AVG([TotalNSV%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([TotalNSV%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([TotalNSV%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([TotalNSV%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT 
+YearPeriod,
+SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV,
+SUM([GSV Amount]) AS TotalGSV,
+(SUM([GSV Amount])-SUM(TradeCostsAmount))/SUM([GSV Amount]) * 100 AS [TotalNSV%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Show Me The Trend Of Total NSV Along With Confidence High And Low For Year 2023?,"SELECT YearPeriod,
+TotalNSV,
+ConfindenceHigh,
+Confindencelow
+FROM
+(SELECT YearPeriod,
+TotalNSV,
+((AVG([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfindenceHigh"",
+((AVG([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([TotalNSV]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confindencelow""
+FROM
+(SELECT 
+YearPeriod,
+SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV,
+SUM([GSV Amount]) AS TotalGSV
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level1 = 'Trade' THEN Amount
+ELSE 0
+END AS TradeCostsAmount,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Compare The Total NSV For YearPeriod 2023001 With Same Period Last Year,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.TotalNSV AS CurrentTotalNSV,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.TotalNSV AS PreviousTotalNSV,
+current_period.TotalNSV - previous_period.TotalNSV AS TotalNSV_Difference,
+(current_period.TotalNSV - previous_period.TotalNSV)*100/previous_period.TotalNSV AS 'TotalNSV_Difference%'
+FROM
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+) AS current_period
+JOIN
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2022001
+	GROUP BY YearPeriod
+) AS previous_period 
+ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022001;"
+Compare The Total NSV For YearPeriod 2023001 With previous Period,"SELECT current_period.YearPeriod AS CurrentPeriod,
+current_period.TotalNSV AS CurrentTotalNSV,
+previous_period.YearPeriod AS PreviousPeriod,
+previous_period.TotalNSV AS PreviousTotalNSV,
+current_period.TotalNSV - previous_period.TotalNSV AS TotalNSV_Difference,
+(current_period.TotalNSV - previous_period.TotalNSV)*100/previous_period.TotalNSV AS 'TotalNSV_Difference%'
+FROM
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+) AS current_period
+JOIN
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod
+) AS previous_period 
+ON current_period.YearPeriod = 2023001
+AND previous_period.YearPeriod = 2022013;"
+Compare The Total NSV For YearPeriod 2023007 With previous Period,"SELECT current_period.YearPeriod AS CurrentPeriod,
+current_period.TotalNSV AS CurrentTotalNSV,
+previous_period.YearPeriod AS PreviousPeriod,
+previous_period.TotalNSV AS PreviousTotalNSV,
+current_period.TotalNSV - previous_period.TotalNSV AS TotalNSV_Difference,
+(current_period.TotalNSV - previous_period.TotalNSV)*100/previous_period.TotalNSV AS 'TotalNSV_Difference%'
+FROM
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023007
+	GROUP BY YearPeriod
+) AS current_period
+JOIN
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023006
+	GROUP BY YearPeriod
+) AS previous_period 
+ON current_period.YearPeriod = 2023007
+AND previous_period.YearPeriod = 2023006;"
+What Is My Total NSV YTD for 2023 period 3,"SELECT 
+SUM(TotalNSV) as 'TotalNSVYTD'
+FROM 
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(
+		SELECT YearPeriod,
+		CASE
+		WHEN Level1 = 'Trade' THEN Amount
+		ELSE 0
+		END AS TradeCostsAmount,
+		CASE
+		WHEN Level1 = 'Total GSV Third Party' THEN Amount
+		ELSE 0
+		END AS [GSV Amount],
+		hierarchy.Level1
+		FROM [dbo].[aggregated_data]
+		LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+	) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod BETWEEN '2023001' AND '2023003'
+	GROUP BY YearPeriod
+) as YTD_sq"
+What Is My Total NSV YTD for 2023 period 13,"SELECT 
+SUM(TotalNSV) as 'TotalNSVYTD'
+FROM 
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(
+		SELECT YearPeriod,
+		CASE
+		WHEN Level1 = 'Trade' THEN Amount
+		ELSE 0
+		END AS TradeCostsAmount,
+		CASE
+		WHEN Level1 = 'Total GSV Third Party' THEN Amount
+		ELSE 0
+		END AS [GSV Amount],
+		hierarchy.Level1
+		FROM [dbo].[aggregated_data]
+		LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+	) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod BETWEEN '2023001' AND '2023013'
+	GROUP BY YearPeriod
+) as YTD_sq"
+What Is My Total NSV YTD,"SELECT 
+SUM(TotalNSV) as 'TotalNSVYTD'
+FROM 
+(
+	SELECT YearPeriod,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+	FROM
+	(
+		SELECT YearPeriod,
+		CASE
+		WHEN Level1 = 'Trade' THEN Amount
+		ELSE 0
+		END AS TradeCostsAmount,
+		CASE
+		WHEN Level1 = 'Total GSV Third Party' THEN Amount
+		ELSE 0
+		END AS [GSV Amount],
+		hierarchy.Level1
+		FROM [dbo].[aggregated_data]
+		LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+	) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod BETWEEN FORMAT(CURRENT_TIMESTAMP,'yyyy')+'001' 
+	AND FORMAT(CURRENT_TIMESTAMP,'yyyy')+RIGHT(REPLICATE('0',3)+FORMAT(CURRENT_TIMESTAMP,'MM'),3)
+	GROUP BY YearPeriod
+) as YTD_sq"
+compare Total NSV at YTD level for 2023 period 3 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalNSV) as 'YTD_2023003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+		FROM
+		(
+			SELECT YearPeriod,
+			CASE
+			WHEN Level1 = 'Trade' THEN Amount
+			ELSE 0
+			END AS TradeCostsAmount,
+			CASE
+			WHEN Level1 = 'Total GSV Third Party' THEN Amount
+			ELSE 0
+			END AS [GSV Amount],
+			hierarchy.Level1
+			FROM [dbo].[aggregated_data]
+			LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+		) AS subquery
+		WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+		AND YearPeriod BETWEEN '2023001' AND '2023003'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalNSV) as 'YTD_2022003'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+		FROM
+		(
+			SELECT YearPeriod,
+			CASE
+			WHEN Level1 = 'Trade' THEN Amount
+			ELSE 0
+			END AS TradeCostsAmount,
+			CASE
+			WHEN Level1 = 'Total GSV Third Party' THEN Amount
+			ELSE 0
+			END AS [GSV Amount],
+			hierarchy.Level1
+			FROM [dbo].[aggregated_data]
+			LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+		) AS subquery
+		WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+		AND YearPeriod BETWEEN '2022001' AND '2022003'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023003,
+YTD_2022003,
+((YTD_2023003 - YTD_2022003) / YTD_2022003)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+compare Total NSV at YTD level for 2023 period 13 with previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalNSV) as 'YTD_2023013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+		FROM
+		(
+			SELECT YearPeriod,
+			CASE
+			WHEN Level1 = 'Trade' THEN Amount
+			ELSE 0
+			END AS TradeCostsAmount,
+			CASE
+			WHEN Level1 = 'Total GSV Third Party' THEN Amount
+			ELSE 0
+			END AS [GSV Amount],
+			hierarchy.Level1
+			FROM [dbo].[aggregated_data]
+			LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+		) AS subquery
+		WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+		AND YearPeriod BETWEEN '2023001' AND '2023013'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalNSV) as 'YTD_2022013'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM([GSV Amount])-SUM(TradeCostsAmount) AS TotalNSV
+		FROM
+		(
+			SELECT YearPeriod,
+			CASE
+			WHEN Level1 = 'Trade' THEN Amount
+			ELSE 0
+			END AS TradeCostsAmount,
+			CASE
+			WHEN Level1 = 'Total GSV Third Party' THEN Amount
+			ELSE 0
+			END AS [GSV Amount],
+			hierarchy.Level1
+			FROM [dbo].[aggregated_data]
+			LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID
+		) AS subquery
+		WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+		AND YearPeriod BETWEEN '2022001' AND '2022013'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023013,
+YTD_2022013,
+((YTD_2023013 - YTD_2022013) / YTD_2022013)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+provide the difference of Total NSV for year 2023 period 1 vs last month and analyse contribution by Profit Center,"with current_period_profit_center as
+(
+	SELECT YearPeriod,
+	Profit_Center_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS CurrentPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Profit_Center_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod,Profit_Center_Desc
+),
+
+previous_period_profit_center as
+(
+	SELECT YearPeriod,
+	Profit_Center_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS PreviousPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Profit_Center_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod,Profit_Center_Desc
+
+),
+
+profit_center_combined as
+(
+	select
+	cur.Profit_Center_Desc as 'X_datapoint',
+	CurrentPeriod_TotalNSV-PreviousPeriod_TotalNSV as 'Y_datapoint'
+	from current_period_profit_center cur
+	FULL OUTER JOIN previous_period_profit_center prev ON cur.Profit_Center_Desc = prev.Profit_Center_Desc
+),
+
+previous_period_TotalNSV as
+(
+	SELECT
+	'PreviousPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod
+),
+
+current_period_TotalNSV as 
+(
+	SELECT
+	'CurrentPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+)
+select
+X_datapoint,
+Y_datapoint
+from
+(
+	select *, 2 as 'order_col' from profit_center_combined WHERE X_datapoint IS NOT NULL
+	UNION
+	select *, 3 as 'order_col' from current_period_TotalNSV
+	UNION
+	select *,1 as 'order_col' from previous_period_TotalNSV
+) as union_sq
+ORDER BY order_col"
+provide the difference of Total NSV for year 2023 period 13 vs last month and analyse contribution by Profit Center,"with current_period_profit_center as
+(
+	SELECT YearPeriod,
+	Profit_Center_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS CurrentPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Profit_Center_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod,Profit_Center_Desc
+),
+
+previous_period_profit_center as
+(
+	SELECT YearPeriod,
+	Profit_Center_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS PreviousPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Profit_Center_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod,Profit_Center_Desc
+
+),
+
+profit_center_combined as
+(
+	select
+	cur.Profit_Center_Desc as 'X_datapoint',
+	CurrentPeriod_TotalNSV-PreviousPeriod_TotalNSV as 'Y_datapoint'
+	from current_period_profit_center cur
+	FULL OUTER JOIN previous_period_profit_center prev ON cur.Profit_Center_Desc = prev.Profit_Center_Desc
+),
+
+previous_period_TotalNSV as
+(
+	SELECT
+	'PreviousPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod
+),
+
+current_period_TotalNSV as 
+(
+	SELECT
+	'CurrentPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+)
+select
+X_datapoint,
+Y_datapoint
+from
+(
+	select *, 2 as 'order_col' from profit_center_combined WHERE X_datapoint IS NOT NULL
+	UNION
+	select *, 3 as 'order_col' from current_period_TotalNSV
+	UNION
+	select *,1 as 'order_col' from previous_period_TotalNSV
+) as union_sq
+ORDER BY order_col"
+provide the difference of Total NSV for year 2023 period 1 vs last month and analyse by functional area,"with current_period_Func_Area_Desc as
+(
+	SELECT YearPeriod,
+	Func_Area_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS CurrentPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Func_Area_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod,Func_Area_Desc
+),
+
+previous_period_Func_Area_Desc as
+(
+	SELECT YearPeriod,
+	Func_Area_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS PreviousPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Func_Area_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod,Func_Area_Desc
+
+),
+
+profit_center_combined as
+(
+	select
+	cur.Func_Area_Desc as 'X_datapoint',
+	CurrentPeriod_TotalNSV-PreviousPeriod_TotalNSV as 'Y_datapoint'
+	from current_period_Func_Area_Desc cur
+	FULL OUTER JOIN previous_period_Func_Area_Desc prev ON cur.Func_Area_Desc = prev.Func_Area_Desc
+),
+
+previous_period_TotalNSV as
+(
+	SELECT
+	'PreviousPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod
+),
+
+current_period_TotalNSV as 
+(
+	SELECT
+	'CurrentPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+)
+select 
+X_datapoint,
+Y_datapoint
+from
+(
+	select *, 2 as 'order_col' from profit_center_combined WHERE X_datapoint IS NOT NULL
+	UNION
+	select *, 3 as 'order_col' from current_period_TotalNSV
+	UNION
+	select *, 1 as 'order_col' from previous_period_TotalNSV
+) as union_sq
+ORDER BY order_col"
+Compare The Advertising For year 2022 of 4th Period With Same Period Last Year,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.AdvertisingAmount AS CurrentAdvertising,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.AdvertisingAmount AS PreviousAdvertising,
+current_period.AdvertisingAmount - previous_period.AdvertisingAmount AS Advertising_Difference,
+(current_period.AdvertisingAmount - previous_period.AdvertisingAmount)*100/previous_period.AdvertisingAmount AS 'Advertising_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS AdvertisingAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level2 = 'Advertising'
+AND YearPeriod = 2022004
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS AdvertisingAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level2 = 'Advertising'
+AND YearPeriod = 2021004
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2022004
+AND previous_period.YearPeriod = 2021004;"
+Find the time frames in 2023 during which the sales of affiliate products do not fall within the confidence interval.,"SELECT YearPeriod, 
+Amount as 'AffiliateProductSales',
+ConfidenceHigh, 
+Confidencelow,
+CASE
+WHEN Amount NOT BETWEEN Confidencelow AND ConfidenceHigh THEN 1
+ELSE 0
+END as 'IsOutOfInterval'
+FROM
+(SELECT YearPeriod,
+Amount,
+((AVG([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(AffiliateProductSales) AS Amount
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level2 = 'Affiliates Sales - Products' THEN Amount
+ELSE 0
+END AS AffiliateProductSales,
+hierarchy.Level2
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level2 IN ('Affiliates Sales - Products')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE  YearPeriod LIKE '2023%'"
+Identify the periods in 2022 and 2023 when internal manufacturing deviates from the confidence interval,"SELECT YearPeriod, 
+[Amount] as 'InternalManufacturingAmount', 
+ConfidenceHigh,
+Confidencelow,
+CASE
+WHEN Amount NOT BETWEEN Confidencelow AND ConfidenceHigh THEN 1
+ELSE 0
+END as 'IsOutOfInterval'
+FROM
+(SELECT YearPeriod,
+Amount,
+((AVG([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(InternalManufacturingAmount) AS Amount
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level2 = 'Internal Manufacturing' THEN Amount
+ELSE 0
+END AS InternalManufacturingAmount,
+hierarchy.Level2
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level2 IN ('Internal Manufacturing')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2022%' or YearPeriod LIKE '2023%'"
+What percentage of Gross Sales Value (GSV) in Period 8 of 2021 constitutes Corporate Affairs Overheads?,"SELECT YearPeriod,
+SUM(CorporateAffairsOverheadsAmount) as CorporateOverheads,
+SUM(""GSV Amount"") as GSV,
+ROUND(Sum(CorporateAffairsOverheadsAmount)/Sum(""GSV Amount"")*100,2) as ""CorporateOverheads%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level2 = 'Corporate Affairs Overheads' Then Amount
+Else 0
+END As 'CorporateAffairsOverheadsAmount',
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1,
+hierarchy.Level2
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where (subquery.Level1 in ('Total GSV Third Party') or subquery.Level2 IN ('Corporate Affairs Overheads'))
+and (subquery.YearPeriod = 2021008)
+Group by subquery.YearPeriod"
+What portion of the Gross Sales Value (GSV) in the 13th Period of 2021 is allocated to Information Systems Overheads?,"SELECT YearPeriod,
+SUM(InfoSystemsOverheadsAmount) as InfoSystemsOverheads,
+SUM(""GSV Amount"") as GSV,
+ROUND(Sum(InfoSystemsOverheadsAmount)/Sum(""GSV Amount"")*100,2) as ""InfoSystemsOverheads%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level2 = 'Info Systems Overheads' Then Amount
+Else 0
+END As 'InfoSystemsOverheadsAmount',
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1,
+hierarchy.Level2
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where (subquery.Level1 in ('Total GSV Third Party') or subquery.Level2 IN ('Info Systems Overheads'))
+and (subquery.YearPeriod = 2021013)
+Group by subquery.YearPeriod"
+Can you elaborate on Non-controllable Costs X-charges for period 13 in the year 2023?,"SELECT YearPeriod,
+SUM(XCharges_NonControllableCosts) as ""XCharges_NonControllableCosts""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level2 = 'Non-controllable Costs X-charges' Then Amount
+Else 0
+END As ""XCharges_NonControllableCosts"",
+hierarchy.Level2
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where subquery.Level2 in ('Non-controllable Costs X-charges')
+and subquery.YearPeriod = 2023013
+Group by subquery.YearPeriod"
+"Could you show me the annual trend of Interest Net as a percentage of Gross Sales Value (GSV) for 2023, including both the upper and lower confidence bounds?","SELECT YearPeriod,
+Amount AS TotalInterestNet,
+ROUND([Amount%],2) AS 'TotalInterestNet%',
+ROUND(ConfidenceHigh,2) AS 'ConfidenceHigh',
+ROUND(Confidencelow,2) AS 'Confidencelow'
+FROM
+(SELECT YearPeriod,
+Amount,
+[Amount%],
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount%]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(TotalInterestNet) AS Amount,
+SUM([GSV Amount]) AS GSV,
+SUM(TotalInterestNet)/SUM([GSV Amount])*100 AS [Amount%]
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level2 = 'Interest Net' THEN Amount
+ELSE 0
+END AS TotalInterestNet,
+CASE
+WHEN Level1 = 'Total GSV Third Party' THEN Amount
+ELSE 0
+END AS [GSV Amount],
+hierarchy.Level1,
+hierarchy.Level2
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE (subquery.Level1 IN ('Total GSV Third Party')) or (subquery.Level2 IN ('Interest Net'))
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+Compare intercompany purchases during Period 4 of 2023 with those from the same period in the previous year,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.TotalIntercompanyPurchases AS CurrentIntercompanyPurchases,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.TotalIntercompanyPurchases AS PreviousIntercompanyPurchases,
+current_period.TotalIntercompanyPurchases - previous_period.TotalIntercompanyPurchases AS IntercompanyPurchases_Difference,
+(current_period.TotalIntercompanyPurchases - previous_period.TotalIntercompanyPurchases)*100/previous_period.TotalIntercompanyPurchases AS 'IntercompanyPurchases_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS TotalIntercompanyPurchases
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level3 = 'Intercompany Purchases'
+AND YearPeriod = 2023004
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS TotalIntercompanyPurchases
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level3 = 'Intercompany Purchases'
+AND YearPeriod = 2022004
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2023004
+AND previous_period.YearPeriod = 2022004;"
+Evaluate the change in the With holding Taxes Taxes during the first Period of 2024 relative to the earlier reporting period,"SELECT current_period.YearPeriod AS CurrentYearPeriod,
+current_period.WithholdingTaxesAmount AS CurrentWithholdingTaxes,
+previous_period.YearPeriod AS PreviousYearPeriod,
+previous_period.WithholdingTaxesAmount AS PreviousWithholdingTaxes,
+current_period.WithholdingTaxesAmount - previous_period.WithholdingTaxesAmount AS WithholdingTaxes_Difference,
+(current_period.WithholdingTaxesAmount - previous_period.WithholdingTaxesAmount)*100/previous_period.WithholdingTaxesAmount AS 'WithholdingTaxes_Difference%'
+FROM
+(SELECT YearPeriod,
+SUM(Amount) AS WithholdingTaxesAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level3 = 'Withholding Taxes'
+AND YearPeriod = 2024001
+GROUP BY YearPeriod) AS current_period
+JOIN
+(SELECT YearPeriod,
+SUM(Amount) AS WithholdingTaxesAmount
+FROM [dbo].[aggregated_data] AS ad
+JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+WHERE h.Level3 = 'Withholding Taxes'
+AND YearPeriod = 2023013
+GROUP BY YearPeriod) AS previous_period ON current_period.YearPeriod = 2024001
+AND previous_period.YearPeriod = 2023013;"
+Could you give me the Total of R Mfg. Hist Deprec Exp. M & E up until the fifth period of 2022?,"SELECT
+SUM(MfgDeprecForMandE) as 'TotalMfgDeprecForMandE_YTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'MfgDeprecForMandE'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level3 = 'R Mfg. Hist Deprec Exp. M & E'  AND ad.YearPeriod BETWEEN '2022001' AND '2022005'
+	GROUP BY YearPeriod
+) as subset"
+What has been the cumulative Customer Collaboration so far this year till today?,"SELECT
+SUM(TotalCustomerCollaboration) as 'TotalCustomerCollaborationYTD'
+FROM
+(
+	SELECT YearPeriod,
+	SUM(Amount) AS 'TotalCustomerCollaboration'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level3 = 'Customer Collaboration'  AND ad.YearPeriod BETWEEN FORMAT(CURRENT_TIMESTAMP,'yyyy')+'001' 
+	AND FORMAT(CURRENT_TIMESTAMP,'yyyy')+RIGHT(REPLICATE('0',3)+FORMAT(CURRENT_TIMESTAMP,'MM'),3)
+	GROUP BY YearPeriod
+) as subset"
+Analyze the Agency Fees accumulated year-to-date up to period 8 in 2023 and contrast them with the corresponding period in the previous year,"with current_ytd as (
+	SELECT
+	SUM(TotalAgencyFees) as 'YTD_2023008'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalAgencyFees'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level4 = 'Agency Fees'  AND ad.YearPeriod BETWEEN '2023001' AND '2023008'
+		GROUP BY YearPeriod
+	) as sq
+),
+previous_ytd as (
+	SELECT
+	SUM(TotalAgencyFees) as 'YTD_2022008'
+	FROM
+	(
+		SELECT YearPeriod,
+		SUM(Amount) AS 'TotalAgencyFees'
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level4 = 'Agency Fees'  AND ad.YearPeriod BETWEEN '2022001' AND '2022008'
+		GROUP BY YearPeriod
+	) as sq
+)
+select
+YTD_2023008,
+YTD_2022008,
+((YTD_2023008 - YTD_2022008) / YTD_2022008)*100 as 'Diff_%'
+from 
+current_ytd, previous_ytd"
+Highlight any periods in 2023 where logistics expenses deviate from the confidence interval,"SELECT YearPeriod, 
+[Amount], 
+ConfidenceHigh, 
+Confidencelow,
+CASE
+WHEN Amount NOT BETWEEN Confidencelow AND ConfidenceHigh THEN 1
+ELSE 0
+END as IsOutOfInterval
+FROM
+(SELECT YearPeriod,
+Amount,
+((AVG([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(LogisticsExpenses) AS Amount
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level4 = 'Logistics Expenses' THEN Amount
+ELSE 0
+END AS LogisticsExpenses,
+hierarchy.Level4
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level4 IN ('Logistics Expenses')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2023%'"
+"We need an analysis that highlights the differences in Field Sales SWB between period 13 in 2023 and the previous month, with a breakdown of the contribution by Profit Center","with current_period_profit_center as
+(
+	SELECT YearPeriod,
+	ad.Profit_Center_Desc,
+	SUM(Amount) AS CurrentPeriod_FieldSalesSWBAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'Field Sales SWB'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod, ad.Profit_Center_Desc
+),
+
+previous_period_profit_center as
+(
+	SELECT YearPeriod,
+	ad.Profit_Center_Desc,
+	SUM(Amount) AS PreviousPeriod_FieldSalesSWBAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'Field Sales SWB'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod, ad.Profit_Center_Desc
+),
+
+profit_center_combined as
+(
+	select
+	cur.Profit_Center_Desc as 'X_datapoint',
+	CurrentPeriod_FieldSalesSWBAmount-PreviousPeriod_FieldSalesSWBAmount as 'Y_datapoint'
+	from current_period_profit_center cur
+	FULL OUTER JOIN previous_period_profit_center prev ON cur.Profit_Center_Desc = prev.Profit_Center_Desc
+),
+
+previous_period_field_sales_swb as
+(
+	SELECT 
+	'PreviousPeriodFieldSalesSWB' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'Field Sales SWB'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod
+),
+
+current_period_field_sales_swb as 
+(
+	SELECT 
+	'CurrentPeriodFieldSalesSWB' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'Field Sales SWB'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+)
+select X_datapoint, Y_datapoint
+from
+(
+	select *, 2 as order_column from profit_center_combined
+	UNION 
+	select *, 3 as order_column from current_period_field_sales_swb
+	UNION
+	select *, 1 as order_column from previous_period_field_sales_swb
+) as final_sq
+ORDER BY final_sq.order_column"
+"Could you provide a detailed report on the difference in General Management - Expenses between period 13 of 2023 and the previous month, analyzing the expenses by functional area?","with current_period_Func_Area as
+(
+	SELECT YearPeriod,
+	ad.Func_Area_Desc,
+	SUM(Amount) AS CurrentPeriod_GenMgmtExpenses
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'General Management - Expenses'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod, ad.Func_Area_Desc
+),
+
+previous_period_Func_Area as
+(
+	SELECT YearPeriod,
+	ad.Func_Area_Desc,
+	SUM(Amount) AS PreviousPeriod_GenMgmtExpenses
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'General Management - Expenses'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod, ad.Func_Area_Desc
+),
+
+Func_Area_combined as
+(
+	select
+	cur.Func_Area_Desc as 'X_datapoint',
+	CurrentPeriod_GenMgmtExpenses-PreviousPeriod_GenMgmtExpenses as 'Y_datapoint'
+	from current_period_Func_Area cur
+	FULL OUTER JOIN previous_period_Func_Area prev ON cur.Func_Area_Desc = prev.Func_Area_Desc
+),
+
+previous_period_gen_mgmt_expenses as
+(
+	SELECT 
+	'PreviousPeriodGenMgmtExpenses' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'General Management - Expenses'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod
+),
+
+current_period_gen_mgmt_expenses as 
+(
+	SELECT 
+	'CurrentPeriodGenMgmtExpenses' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'General Management - Expenses'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+)
+select X_datapoint, Y_datapoint
+from
+(
+	select *, 2 as order_column from Func_Area_combined
+	UNION 
+	select *, 3 as order_column from current_period_gen_mgmt_expenses
+	UNION
+	select *, 1 as order_column from previous_period_gen_mgmt_expenses
+) as final_sub_query
+ORDER BY final_sub_query.order_column"
+Highlight instances in 2022 where Direct Labor - Assoc. deviates from the confidence interval,"SELECT YearPeriod, 
+[Amount], 
+ConfidenceHigh, 
+Confidencelow,
+CASE
+WHEN Amount NOT BETWEEN Confidencelow AND ConfidenceHigh THEN 1
+ELSE 0
+END as IsOutOfInterval
+FROM
+(SELECT YearPeriod,
+Amount,
+((AVG([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) + 1.96*(STDEV([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""ConfidenceHigh"",
+((AVG([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)) - 1.96*(STDEV([Amount]) OVER (
+order by YearPeriod ROWS BETWEEN 26 PRECEDING AND CURRENT ROW)/SQRT(26))) as ""Confidencelow""
+FROM
+(SELECT YearPeriod,
+SUM(DirectLabourAssocAmount) AS Amount
+FROM
+(SELECT YearPeriod,
+FY,
+aggregated_data.id,
+CASE
+WHEN Level5 = 'Direct Labour - Assoc.' THEN Amount
+ELSE 0
+END AS DirectLabourAssocAmount,
+hierarchy.Level5
+FROM [dbo].[aggregated_data]
+LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+WHERE subquery.Level5 IN ('Direct Labour - Assoc.')
+GROUP BY subquery.YearPeriod) AS Subquery2) as Subquery3
+WHERE YearPeriod LIKE '2022%'"
+I need to know the proportion of Gross Sales Value (GSV) for Period 9 in 2023 that corresponds to the PPV Raw Materials.,"SELECT YearPeriod,
+SUM(PPVRawMatAmt) as PPVRawMatAmt,
+SUM(""GSV Amount"") as GSV,
+ROUND(Sum(PPVRawMatAmt)/Sum(""GSV Amount"")*100,2) as ""PPVRawMatAmt%GSV""
+from
+(Select YearPeriod,
+FY,
+aggregated_data.id,
+Case
+When Level5 = 'PPV Raw Materials' Then Amount
+Else 0
+END As 'PPVRawMatAmt',
+Case
+When Level1 = 'Total GSV Third Party' Then Amount
+Else 0
+END As ""GSV Amount"",
+hierarchy.Level1,
+hierarchy.Level5
+from [dbo].[aggregated_data]
+left join [dbo].[hierarchy] on aggregated_data.ID = hierarchy.ID) as subquery
+where (subquery.Level1 in ('Total GSV Third Party') or subquery.Level5 IN ('PPV Raw Materials'))
+and (subquery.YearPeriod = 2023009)
+Group by subquery.YearPeriod"
+Compare Net Income For 2023 Period 4 With 2023 Period 2?,"SELECT 
+  current_period.YearPeriod AS CurrentYearPeriod, 
+  current_period.NetIncome AS CurrentNetIncome, 
+  previous_period.YearPeriod AS PreviousYearPeriod, 
+  previous_period.NetIncome AS PreviousNetIncome, 
+  current_period.NetIncome - previous_period.NetIncome AS NetIncome_Difference, 
+  (
+    current_period.NetIncome - previous_period.NetIncome
+  ) * 100.0 / previous_period.NetIncome AS 'NetIncome_Difference%' 
+FROM 
+  (
+    SELECT 
+      YearPeriod, 
+      SUM(
+        CASE WHEN h.Level1 = 'Affiliate Sales' THEN Amount ELSE 0 END
+      ) + SUM(
+        CASE WHEN h.Level1 = 'Total GSV Third Party' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Trade' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Prime Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Conversion Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Advertising & Consumer Promo' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Franchise & Sales Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'General & Admin Overheads' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Other Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'R Depreciation' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Non-Operating Cost' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Non-controllable Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Provision for Tax' THEN Amount ELSE 0 END
+      )
+	  AS NetIncome 
+    FROM 
+      [dbo].[aggregated_data] AS ad 
+      JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID 
+    WHERE 
+      YearPeriod = 2023004 
+    GROUP BY 
+      YearPeriod
+  ) AS current_period 
+  JOIN (
+     SELECT 
+      YearPeriod, 
+      SUM(
+        CASE WHEN h.Level1 = 'Affiliate Sales' THEN Amount ELSE 0 END
+      ) + SUM(
+        CASE WHEN h.Level1 = 'Total GSV Third Party' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Trade' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Prime Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Conversion Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Advertising & Consumer Promo' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Franchise & Sales Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'General & Admin Overheads' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Other Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'R Depreciation' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Non-Operating Cost' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Non-controllable Costs' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Provision for Tax' THEN Amount ELSE 0 END
+      )
+	  AS NetIncome 
+    FROM 
+      [dbo].[aggregated_data] AS ad 
+      JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID 
+    WHERE 
+      YearPeriod = 2023002 
+    GROUP BY 
+      YearPeriod
+  ) AS previous_period ON current_period.YearPeriod = 2023004 
+  AND previous_period.YearPeriod = 2023002;"
+Compare prime margin For 2023 Period 4 With 2023 Period 2?,"SELECT 
+  current_period.YearPeriod AS CurrentYearPeriod, 
+  current_period.PrimeMargin AS CurrentPrimeMargin, 
+  previous_period.YearPeriod AS PreviousYearPeriod, 
+  previous_period.PrimeMargin AS PreviousPrimeMargin, 
+  current_period.PrimeMargin - previous_period.PrimeMargin AS PrimeMargin_Difference, 
+  (
+    current_period.PrimeMargin - previous_period.PrimeMargin
+  ) * 100.0 / previous_period.PrimeMargin AS 'PrimeMargin_Difference%' 
+FROM 
+  (
+    SELECT 
+      YearPeriod, 
+      SUM(
+        CASE WHEN h.Level1 = 'Affiliate Sales' THEN Amount ELSE 0 END
+      ) + SUM(
+        CASE WHEN h.Level1 = 'Total GSV Third Party' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Trade' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Prime Costs' THEN Amount ELSE 0 END
+      ) AS PrimeMargin 
+    FROM 
+      [dbo].[aggregated_data] AS ad 
+      JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID 
+    WHERE 
+      YearPeriod = 2023004 
+    GROUP BY 
+      YearPeriod
+  ) AS current_period 
+  JOIN (
+    SELECT 
+      YearPeriod, 
+      SUM(
+        CASE WHEN h.Level1 = 'Affiliate Sales' THEN Amount ELSE 0 END
+      ) + SUM(
+        CASE WHEN h.Level1 = 'Total GSV Third Party' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Trade' THEN Amount ELSE 0 END
+      ) - SUM(
+        CASE WHEN h.Level1 = 'Prime Costs' THEN Amount ELSE 0 END
+      ) AS PrimeMargin 
+    FROM 
+      [dbo].[aggregated_data] AS ad 
+      JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID 
+    WHERE 
+      YearPeriod = 2023002 
+    GROUP BY 
+      YearPeriod
+  ) AS previous_period ON current_period.YearPeriod = 2023004 
+  AND previous_period.YearPeriod = 2023002;"
+Give Me Last 13 Period Prime Cost Since 2023 Period 2?,"SELECT
+SUM(TotalPrimeCosts) as 'TotalPrimeCosts'
+FROM
+(
+	SELECT ad.YearPeriod,
+	SUM(Amount) AS 'TotalPrimeCosts'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	JOIN
+	(
+		SELECT DISTINCT TOP 13 YearPeriod
+		FROM [dbo].[aggregated_data] AS ad
+		JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+		WHERE h.Level1 = 'Prime Costs' and YearPeriod <= 2023002
+		ORDER BY YearPeriod DESC
+	) as sq_last_periods ON sq_last_periods.YearPeriod = ad.YearPeriod
+	WHERE h.Level1 = 'Prime Costs'
+	GROUP BY ad.YearPeriod
+) as subset"
+provide the difference of prime cost for year 2023 period 1 vs last month and analyse contribution by Cost Center,"with current_period_cost_center as
+(
+	SELECT YearPeriod,
+	ad.Cost_Center_Desc,
+	SUM(Amount) AS CurrentPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod, ad.Cost_Center_Desc
+),
+
+previous_period_cost_center as
+(
+	SELECT YearPeriod,
+	ad.Cost_Center_Desc,
+	SUM(Amount) AS PreviousPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod, ad.Cost_Center_Desc
+
+),
+
+cost_center_combined as
+(
+	select
+	cur.Cost_Center_Desc as 'X_datapoint',
+	CurrentPeriod_PrimeCostAmount-PreviousPeriod_PrimeCostAmount as 'Y_datapoint'
+	from current_period_cost_center cur
+	FULL OUTER JOIN previous_period_cost_center prev ON cur.Cost_Center_Desc = prev.Cost_Center_Desc
+),
+
+previous_period_prime_cost as
+(
+	SELECT 
+	'PreviousPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod
+),
+
+current_period_prime_cost as 
+(
+	SELECT 
+	'CurrentPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+)
+SELECT X_datapoint, Y_datapoint
+FROM 
+(
+	select *, 2 as 'order_column' from cost_center_combined
+	UNION
+	select *, 3 as 'order_column' from current_period_prime_cost
+	UNION
+	select *, 1 as 'order_column' from previous_period_prime_cost
+) sub_query
+ORDER BY order_column "
+provide the difference of prime cost for year 2023 period 13 vs last month and analyse contribution by Cost Center,"with current_period_cost_center as
+(
+	SELECT YearPeriod,
+	ad.Cost_Center_Desc,
+	SUM(Amount) AS CurrentPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod, ad.Cost_Center_Desc
+),
+
+previous_period_cost_center as
+(
+	SELECT YearPeriod,
+	ad.Cost_Center_Desc,
+	SUM(Amount) AS PreviousPeriod_PrimeCostAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod, ad.Cost_Center_Desc
+),
+
+cost_center_combined as
+(
+	select
+	cur.Cost_Center_Desc as 'X_datapoint',
+	CurrentPeriod_PrimeCostAmount-PreviousPeriod_PrimeCostAmount as 'Y_datapoint'
+	from current_period_cost_center cur
+	FULL OUTER JOIN previous_period_cost_center prev ON cur.Cost_Center_Desc = prev.Cost_Center_Desc
+),
+
+previous_period_prime_cost as
+(
+	SELECT 
+	'PreviousPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod
+),
+
+current_period_prime_cost as 
+(
+	SELECT 
+	'CurrentPeriodPrimeCosts' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level1 = 'Prime Costs'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+)
+SELECT X_datapoint, Y_datapoint
+FROM 
+(
+	select *, 2 as 'order_column' from cost_center_combined
+	UNION
+	select *, 3 as 'order_column' from current_period_prime_cost
+	UNION
+	select *, 1 as 'order_column' from previous_period_prime_cost
+) sub_query
+ORDER BY order_column"
+provide the difference of Total NSV for year 2023 period 1 vs last month and analyse contribution by Cost Center,"with current_period_cost_center as
+(
+	SELECT YearPeriod,
+	Cost_Center_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS CurrentPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Cost_Center_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod,Cost_Center_Desc
+),
+
+previous_period_cost_center as
+(
+	SELECT YearPeriod,
+	Cost_Center_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS PreviousPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Cost_Center_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod,Cost_Center_Desc
+
+),
+
+cost_center_combined as
+(
+	select
+	cur.Cost_Center_Desc as 'X_datapoint',
+	CurrentPeriod_TotalNSV-PreviousPeriod_TotalNSV as 'Y_datapoint'
+	from current_period_cost_center cur
+	FULL OUTER JOIN previous_period_cost_center prev ON cur.Cost_Center_Desc = prev.Cost_Center_Desc
+),
+
+previous_period_TotalNSV as
+(
+	SELECT
+	'PreviousPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2022013
+	GROUP BY YearPeriod
+),
+
+current_period_TotalNSV as 
+(
+	SELECT
+	'CurrentPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023001
+	GROUP BY YearPeriod
+)
+select
+X_datapoint,
+Y_datapoint
+from
+(
+	select *, 2 as 'order_col' from cost_center_combined WHERE X_datapoint IS NOT NULL
+	UNION
+	select *, 3 as 'order_col' from current_period_TotalNSV
+	UNION
+	select *,1 as 'order_col' from previous_period_TotalNSV
+) as union_sq
+ORDER BY order_col"
+provide the difference of Total NSV for year 2023 period 13 vs last month and analyse contribution by Cost Center,"with current_period_cost_center as
+(
+	SELECT YearPeriod,
+	Cost_Center_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS CurrentPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Cost_Center_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod,Cost_Center_Desc
+),
+
+previous_period_cost_center as
+(
+	SELECT YearPeriod,
+	Cost_Center_Desc,
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS PreviousPeriod_TotalNSV
+	FROM
+	(SELECT YearPeriod,
+	Cost_Center_Desc,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod,Cost_Center_Desc
+
+),
+
+cost_center_combined as
+(
+	select
+	cur.Cost_Center_Desc as 'X_datapoint',
+	CurrentPeriod_TotalNSV-PreviousPeriod_TotalNSV as 'Y_datapoint'
+	from current_period_cost_center cur
+	FULL OUTER JOIN previous_period_cost_center prev ON cur.Cost_Center_Desc = prev.Cost_Center_Desc
+),
+
+previous_period_TotalNSV as
+(
+	SELECT
+	'PreviousPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod
+),
+
+current_period_TotalNSV as 
+(
+	SELECT
+	'CurrentPeriodTotalNSV' as 'X_datapoint',
+	SUM([GSV Amount])-SUM(TradeCostsAmount) AS 'Y_datapoint'
+	FROM
+	(SELECT YearPeriod,
+	CASE
+	WHEN Level1 = 'Trade' THEN Amount
+	ELSE 0
+	END AS TradeCostsAmount,
+	CASE
+	WHEN Level1 = 'Total GSV Third Party' THEN Amount
+	ELSE 0
+	END AS [GSV Amount],
+	hierarchy.Level1
+	FROM [dbo].[aggregated_data]
+	LEFT JOIN [dbo].[hierarchy] ON aggregated_data.ID = hierarchy.ID) AS subquery
+	WHERE subquery.Level1 IN ('Trade','Total GSV Third Party')
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+)
+select
+X_datapoint,
+Y_datapoint
+from
+(
+	select *, 2 as 'order_col' from cost_center_combined WHERE X_datapoint IS NOT NULL
+	UNION
+	select *, 3 as 'order_col' from current_period_TotalNSV
+	UNION
+	select *,1 as 'order_col' from previous_period_TotalNSV
+) as union_sq
+ORDER BY order_col"
+"We need an analysis that highlights the differences in Field Sales SWB between period 13 in 2023 and the previous month, with a breakdown of the contribution by Cost Center","with current_period_cost_center as
+(
+	SELECT YearPeriod,
+	ad.Cost_Center_Desc,
+	SUM(Amount) AS CurrentPeriod_FieldSalesSWBAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'Field Sales SWB'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod, ad.Cost_Center_Desc
+),
+
+previous_period_cost_center as
+(
+	SELECT YearPeriod,
+	ad.Cost_Center_Desc,
+	SUM(Amount) AS PreviousPeriod_FieldSalesSWBAmount
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'Field Sales SWB'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod, ad.Cost_Center_Desc
+),
+
+cost_center_combined as
+(
+	select
+	cur.Cost_Center_Desc as 'X_datapoint',
+	CurrentPeriod_FieldSalesSWBAmount-PreviousPeriod_FieldSalesSWBAmount as 'Y_datapoint'
+	from current_period_cost_center cur
+	FULL OUTER JOIN previous_period_cost_center prev ON cur.Cost_Center_Desc = prev.Cost_Center_Desc
+),
+
+previous_period_field_sales_swb as
+(
+	SELECT 
+	'PreviousPeriodFieldSalesSWB' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'Field Sales SWB'
+	AND YearPeriod = 2023012
+	GROUP BY YearPeriod
+),
+
+current_period_field_sales_swb as 
+(
+	SELECT 
+	'CurrentPeriodFieldSalesSWB' as 'X_datapoint',
+	SUM(Amount) AS 'Y_datapoint'
+	FROM [dbo].[aggregated_data] AS ad
+	JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+	WHERE h.Level4 = 'Field Sales SWB'
+	AND YearPeriod = 2023013
+	GROUP BY YearPeriod
+)
+select X_datapoint, Y_datapoint
+from
+(
+	select *, 2 as order_column from cost_center_combined
+	UNION 
+	select *, 3 as order_column from current_period_field_sales_swb
+	UNION
+	select *, 1 as order_column from previous_period_field_sales_swb
+) as final_sq
+ORDER BY final_sq.order_column"
+"Compare Value Of Prime Cost For P7 2023, With Past Trend","WITH PrimeCostData AS
+  (SELECT YearPeriod,
+          SUM(CASE
+                  WHEN h.Level1 = 'Prime Costs' THEN ad.Amount
+                  ELSE 0
+              END) AS PrimeCostAmount
+   FROM [dbo].[aggregated_data] AS ad
+   JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+   WHERE h.Level1 = 'Prime Costs'
+   GROUP BY YearPeriod),
+     PrimeCostStats AS
+  (SELECT AVG(PrimeCostAmount) AS AvgPrimeCost,
+          STDEV(PrimeCostAmount) AS StdDevPrimeCost
+   FROM PrimeCostData
+   WHERE YearPeriod < 2023007 )
+SELECT p.YearPeriod,
+       p.PrimeCostAmount,
+       s.AvgPrimeCost,
+       s.StdDevPrimeCost,
+       CASE
+           WHEN p.PrimeCostAmount BETWEEN (s.AvgPrimeCost - 2 * s.StdDevPrimeCost) AND (s.AvgPrimeCost + 2 * s.StdDevPrimeCost) THEN 'Normal'
+           ELSE 'Not Normal'
+       END AS PrimeCostStatus
+FROM PrimeCostData p
+CROSS JOIN PrimeCostStats s
+WHERE p.YearPeriod = 2023007;"
+"Is Value Of Prime Cost For P7 2023, Normal Wrt Past Trends","WITH PrimeCostData AS
+  (SELECT YearPeriod,
+          SUM(CASE
+                  WHEN h.Level1 = 'Prime Costs' THEN ad.Amount
+                  ELSE 0
+              END) AS PrimeCostAmount
+   FROM [dbo].[aggregated_data] AS ad
+   JOIN [dbo].[hierarchy] AS h ON ad.ID = h.ID
+   WHERE h.Level1 = 'Prime Costs'
+   GROUP BY YearPeriod),
+     PrimeCostStats AS
+  (SELECT AVG(PrimeCostAmount) AS AvgPrimeCost,
+          STDEV(PrimeCostAmount) AS StdDevPrimeCost
+   FROM PrimeCostData
+   WHERE YearPeriod < 2023007 )
+SELECT p.YearPeriod,
+       p.PrimeCostAmount,
+       s.AvgPrimeCost,
+       s.StdDevPrimeCost,
+       CASE
+           WHEN p.PrimeCostAmount BETWEEN (s.AvgPrimeCost - 2 * s.StdDevPrimeCost) AND (s.AvgPrimeCost + 2 * s.StdDevPrimeCost) THEN 'Normal'
+           ELSE 'Not Normal'
+       END AS PrimeCostStatus
+FROM PrimeCostData p
+CROSS JOIN PrimeCostStats s
+WHERE p.YearPeriod = 2023007;"

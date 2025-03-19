@@ -1,0 +1,15 @@
+analysis_type,sample_question,sub_questions,question_number
+decomposition analysis,Give me decomposition analysis of GSV by profit center for year 2023 period 1?,Give percentage contribution of Profit center in GSV for year 2023 period 1,1
+decomposition analysis,Give me decomposition analysis of GSV by profit center for year 2023 period 1?,Give percentage contribution of Profit center in GSV in last year 2023 same period 1?,2
+decomposition analysis,Give me decomposition analysis of GSV by profit center for year 2023 period 1?,Give me percentage contribution of profit center in GSV in last period 13 year 2022?,3
+decomposition analysis,Give me decomposition analysis of GSV by profit center for year 2023 period 1?,How much profit center component in dollar value contributed in GSV from previous period 13 year 2022 to current period 1 year 2023?,4
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,Show me the GSV trend for the year 2023 period 1. Is it within the confidence interval?,1
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,"Compare the year 2023 period 1 GSV with the period 1 in the last two years ie 2022, 2021.",2
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,Calculate how much for the year 2023 period 1 GSV deviates from its confidence interval,3
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,What is the 26 rolling average for GSV year 2023 period 1?,4
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,Calculate the GSV growth rate from the previous period 2022 13 to the year 2023 period 1?,5
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,How much the previous period 2023 13 GSV from the year 2023 period 1 GSV?,6
+trend analysis,Give me trend analysis of GSV for year 2023 period 1?,Compare this year 2023 period 1 GSV with the same period's GSV last year 2022 period 1?,7
+variance analysis,Give me variance analysis of GSV for year 2023 period 1,How much profit center component in dollar value contributed in GSV from previous period 13 year 2022 to current period 1 year 2023?,1
+variance analysis,Give me variance analysis of GSV for year 2023 period 1,What is the percentage change of GSV of current period 1 year 2023 with last period 13 year 2022?,2
+variance analysis,Give me variance analysis of GSV for year 2023 period 1,What is the percentage change of GSV of current period 1 year 2023 with last year 2022 same period 1?,3
