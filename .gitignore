@@ -1,0 +1,5 @@
+.deployment
+.vscode/settings.json
+__pycache__/
+.env
+.ipynb_checkpoints
