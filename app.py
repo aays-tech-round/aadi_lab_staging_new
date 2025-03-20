@@ -2,12 +2,15 @@
 # __import__('pysqlite3')
 # import sys
 # sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 import argparse
 import shlex
 import sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from src.utils.vanna_aays import *
+from src.utils.aadi_call import *
 import pandas as pd
 import sqlparse
 from src.utils.aadi_base import aadibase
@@ -32,7 +35,7 @@ CORS(app)
 PromptsObj = Prompts()
 SQLQueryObj = SQLQUERY()
 
-vn = vn_aays()
+abc = aadi_genai()
 ab = aadibase(PromptsObj, SQLQueryObj)
 OpenAIConfigObj = OPENAI_CONFIG()
 
@@ -76,21 +79,21 @@ def generate_sql_and_df(query:str,is_mind_map:bool=False)->tuple:
     main_query = query
     while retry > 0:
         log(message="Entering SQL Generation Engine", title="SQL Generation")
-        generated_sql = vn.generate_sql(query, allow_llm_to_see_data=True)
+        generated_sql = abc.generate_sql(query, allow_llm_to_see_data=True)
         log(message="SQL Generated Successfully", title="SQL Generation")
         if ab.is_sql_valid(generated_sql):
             log(message="SQL Schema Correct", title="SQL Schema Check")
             formatted_code = sqlparse.format(generated_sql, reindent=True)
             try:
                 log(message="Entering into database to run generated SQL", title="SQL Syntax Check")
-                df = vn.run_sql(generated_sql)
+                df = abc.run_sql(generated_sql)
                 log(message="SQL Syntactically Correct", title="SQL Syntax Check")
                 #Changing datatypes
                 df.fillna(0,inplace=True)
                 df = ab.convert_yearperiod_to_string(df)
                 if len(df) > 0:
 
-                    questions_df = vn.get_training_data()
+                    questions_df = abc.get_training_data()
                     existing_ques = questions_df[questions_df['training_data_type'] == 'sql']['question']
                     log(message="Entering Summary Generation Engine", title="Summary Check")
                     summary=ab.generate_summary(LLMClient, OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME, query, df)

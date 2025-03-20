@@ -184,6 +184,19 @@ class AadiBase(ABC):
         pass
 
     @abstractmethod
+    def get_training_data(self, **kwargs) -> list:
+        """
+        This method is used to get related documentation to a question.
+
+        Args:
+            question (str): The question to get related documentation for.
+
+        Returns:
+            list: A list of related documentation.
+        """
+        pass
+
+    @abstractmethod
     def add_question_sql(self, question: str, sql: str, **kwargs) -> str:
         """
         This method is used to add a question and its corresponding SQL query to the training data.
@@ -222,6 +235,7 @@ class AadiBase(ABC):
             str: The ID of the training data that was added.
         """
         pass
+    
 
     
 
@@ -1001,14 +1015,13 @@ class AadiBase(ABC):
 
         code = self.submit_prompt(message_log, kwargs=kwargs)
         code = self.extract_python_code(code)[0]
-        print(code)
+        
         if code:
             try:
                 local_vars = {'df': df}
                 exec(code, globals(), local_vars)
                 result_df = local_vars.get('df_filtered', None)
                 if result_df is not None:
-                    print(result_df)
                     return result_df, code
                 else:
                     return "Error: 'df_filtered' not found in the generated code", 400

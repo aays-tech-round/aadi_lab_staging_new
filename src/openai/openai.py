@@ -66,8 +66,6 @@ class OpenAI_Chat(AadiBase):
         num_tokens = 0
 
         for message in prompt:
-            print("CONTENTDIP")
-            print("Content: ", message["content"])
             num_tokens += len(message["content"]) / 4
 
         if kwargs.get("model", None) is not None:

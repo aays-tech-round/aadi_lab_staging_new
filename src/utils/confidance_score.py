@@ -160,12 +160,10 @@ def extract_scores(formatted_json_string):
         _type_: Returns a dictionary of scores of different dimension
     """
     # Remove the ```json and ``` tags, and strip whitespace
-    print("formatted_json_string:::: ", formatted_json_string)
     json_string = formatted_json_string.strip().lstrip('```json').rstrip('```')
-    print("json_string:::: ", json_string)
+  
     # Parse the JSON string
     data = json.loads(json_string)
-    print("json_data:::: ", data)
     
     # Extract scores
     scores = {}
@@ -173,7 +171,7 @@ def extract_scores(formatted_json_string):
         dimension = item['dimension']
         score = item['score']
         scores[dimension] = score
-    print("scores:::: ", scores)
+
     
     return scores
 #------------------------------SUMMARY_CLARITY_SCORE-------------------------------------------------------#
