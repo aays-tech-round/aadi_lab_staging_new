@@ -68,7 +68,7 @@ class Prompts:
         Returns:
             _type_: _description_
         """
-        prompt =f"""
+        user_msg =f"""
             You are an expert Finance Analyst. Summarize the following list of summaries for the question provided.
 
             - Summaries: ```{kwargs['summary_list']}```
@@ -83,15 +83,8 @@ class Prompts:
         
             """
         
-        messages =[
-                {
-                    "role":"system",
-                    "content":"write a concise summary of given list of summaries, do not give any table, summarize all information in paragraph."
-                },
-                {
-                    "role":"user",
-                    "content":prompt}
-            ]
+        system_msg = "write a concise summary of given list of summaries, do not give any table, summarize all information in paragraph."
+        messages = [user_msg, system_msg]
 
         return messages
     
@@ -227,15 +220,69 @@ class Prompts:
                 "content": f"""Can you generate {kwargs['plot_suggestion']} Python plotly code to chart the results of the dataframe? 
                                 Assume the data is in a pandas dataframe called 'df'. 
                                 Instruction:
-                                1. If there is only one value in the dataframe, use an Indicator. 
-                                2. For PIE CHARTS, DONUT CHARTS, and WATERFALL CHARTS, if there are multiple values below 1, combine them into a single category named 'Others' before plotting.                                
-                                3. Do not use append function in dataframe instead use concat. for an example:
-                                    Instead of "df = df.append('Profit_Center_Desc': 'Others', 'PercentageContribution': 'others_sum', ignore_index=True)"
-                                    Use "pd.concat([df, pd.DataFrame('Profit_Center_Desc': ['Others'], 'PercentageContribution': ['others_sum'])], ignore_index=True)
-                                4. Include a title that summarizes the main insight from the data, make it bold, and left-justify it.
-                                5. If the chart has axes, make the axis titles bold. (For pie chart do not do.)
-                                6. Respond with only Python code. Do not answer with any explanations -- just the code."""
-                                #6. Chart legends position should be bottom of the chart.
+
+                                1. If there is only **one value** in the dataframe, follow these rules:
+                                        - If the value represents a **percentage**, display it as a **KPI Card** with:
+                                            - The title indicating the metric.
+                                            - The value formatted with `%` as a **suffix** (e.g., `85%`).
+                                            - The formatted value should be **used as the displayed number** with the suffix applied separately.
+                                        - If the value represents a **monetary amount**, display it as a **KPI Card** with:
+                                            - The title indicating the metric.
+                                            - The value formatted correctly with a **`$` prefix** as follows, make the changes in the orignal value itself **don't create another variable for it**:
+                                                - If `< 1K` → Convert value normally and use **prefix: `$`** and **suffix: `""`** and **valueformat = "d" if it's an integer, otherwise ".2f"**.
+                                                - If `1K - 999K` → Convert the value to **X.XXK** and use **prefix: `$`**, **suffix: `K`** and **valueformat = ".2f"**..
+                                                - If `≥ 1M` → Convert the value to **X.XXM** and use **prefix: `$`**, **suffix: `M`** and **valueformat = ".2f"**..
+                                            - The value should be used in `go.Indicator(value=value)`, with `prefix` and `suffix` applied separately.
+                                        - For all other **Single numerical values** (counts, quantities, etc.), display the number as is, without a currency prefix ($). Apply the following format:
+                                            - The value should be formatted correctly and make the changes in the **orignal value** itself **don't create another variable for it**:
+                                                - If `< 10K` → Convert value normally and use **suffix: `""`** and **valueformat = "d" if it's an integer, otherwise ".2f"****.
+                                                - If `10K - 999K` → Convert the value to **X.XXK** and use  **suffix: `K`** and **valueformat = ".2f"**.
+                                                - If `≥ 1M` → Convert the value to **X.XXM** and use **suffix: `M`** and **valueformat = ".2f"**.
+                                            - The value should be used in `go.Indicator(value=value)`, with `suffix` applied separately. 
+                                        - Title Formatting:
+                                            - Do NOT use "align" inside title.font to prevent errors.
+                                        - **Donot** use the **width** argument in fig.update_layout().
+                                        - **Donot** show title again in **update_layout** if it is shown in **go.Figure**.
+                                        - Use fig.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=20)) for proper spacing, **Dont restrict this height for other Charts with multiple values**.
+                                                
+
+                                    2. For PIE CHARTS, DONUT CHARTS, and WATERFALL CHARTS, if there are multiple values below 1, combine them into a single category named 'Others' before plotting.                                
+                                    3. Do not use append function in dataframe instead use concat. for an example:
+                                        Instead of "df = df.append('Profit_Center_Desc': 'Others', 'PercentageContribution': 'others_sum', ignore_index=True)"
+                                        Use "pd.concat([df, pd.DataFrame('Profit_Center_Desc': ['Others'], 'PercentageContribution': ['others_sum'])], ignore_index=True)
+                                    4. Include a title that summarizes the main insight from the data, make it bold, and left-justify it.
+                                    5. If the chart has axes, make the axis titles bold. (For pie chart do not do.)
+                                    6. Ensure **data labels are displayed** on all charts to enhance readability.
+                                        - **Bar & Column Charts:** Display labels above the bars using `text` with `textposition='outside'`.
+                                        - **Line Charts:** Show labels at each data point using `mode='lines+markers+text'` with `textposition='top center'`.
+                                        - **Pie & Donut Charts Formatting:**
+                                            - Ensure labels are visible on each slice by using `textinfo='label+value'` instead of `label+percent`.  
+                                            - Use `texttemplate='% label: value:.2f'` to correctly display the actual percentage (e.g., `58.74` instead of `0.58%%`).  
+                                            - **Do not use `percent:.2f`**, as it scales percentages incorrectly.
+                                        - **Waterfall Charts:** Display labels above each bar using `textposition='outside'`.
+                                        - **Scatter Plots:** Add labels next to each marker using `mode='markers+text'` with `textposition='top center'`.
+                                        - **Other Chart Types:** If applicable, ensure data labels are present and well-positioned for clarity.
+                                    7. **Data Labels** should be rounded off to **2 decimals** and include the '%' sign for percentages.
+                                    8. When there are **more than 2 columns** and chart is **Bar Chart** then create **Grouped Bar Chart**. 
+                                    9. **Color Refinement:**
+                                        - **Use the following color scheme for consistency:**
+                                            - Mars Blue: `#0000A0`
+                                            - Mars Green: `#00D7B9`
+                                            - Mars Yellow: `#FFDC00`
+                                            - Sky Blue: `#00DCFA`
+                                            - Deep Purple: `#9600FF`
+                                            - Zesty Orange: `#FF8200`
+                                            - Fresh Green: `#A6DB00`
+                                            - Electric Pink: `#FF329F`
+                                            - Grey (Other): `#EBEBEB`
+                                            - Scarlet Red (Bad/-ve): `#FF2400`
+                                        - **Categorical Plots:** Assign unique colors to each category.
+                                        - **Pie/Donut Charts:** Ensure distinct colors; do **not** default to grey unless representing "Other".
+                                        - **Negative Values:** Use Scarlet Red (`#FF2400`).
+                                        - **KPI Cards:** Keep background color unchanged but apply **Mars Blue** color to label and **#0808bd color** to number.
+                                        - **Grouped Bar Charts:** Ensure bars in a group have distinct colors (Mars blue, orange, red, green, purple). **Do not use grey** for any bar.
+                                    10. Respond with only Python code **without any error**. Do not answer with any explanations -- just the code."""
+                                    #6. Chart legends position should be bottom of the chart.
             }
         ]
 

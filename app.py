@@ -2,15 +2,17 @@
 # __import__('pysqlite3')
 # import sys
 # sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 import argparse
 import shlex
 import sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from src.utils.vanna_aays import *
+from src.utils.aadi_call import *
 import pandas as pd
 import sqlparse
-from src.utils.aadi_base import aadibase
 import uuid
 from src.utils.mindmap import *
 import concurrent.futures
@@ -31,10 +33,10 @@ CORS(app)
 # Instantiationg the Config Objects
 PromptsObj = Prompts()
 SQLQueryObj = SQLQUERY()
-
-vn = vn_aays()
-ab = aadibase(PromptsObj, SQLQueryObj)
 OpenAIConfigObj = OPENAI_CONFIG()
+
+abc = aadi_genai()
+
 
 # Creating a Client which is linked to Embedding Model
 EmbedClient = AzureOpenAI(
@@ -76,33 +78,56 @@ def generate_sql_and_df(query:str,is_mind_map:bool=False)->tuple:
     main_query = query
     while retry > 0:
         log(message="Entering SQL Generation Engine", title="SQL Generation")
-        generated_sql = vn.generate_sql(query, allow_llm_to_see_data=True)
+        generated_sql = abc.generate_sql(query, allow_llm_to_see_data=True)
         log(message="SQL Generated Successfully", title="SQL Generation")
-        if ab.is_sql_valid(generated_sql):
+        if abc.is_sql_valid(generated_sql):
             log(message="SQL Schema Correct", title="SQL Schema Check")
             formatted_code = sqlparse.format(generated_sql, reindent=True)
             try:
                 log(message="Entering into database to run generated SQL", title="SQL Syntax Check")
-                df = vn.run_sql(generated_sql)
+                df = abc.run_sql(generated_sql)
+
+                df = df.apply(
+                    lambda col: col.map(
+                        lambda x: x.isoformat() if isinstance(x, pd.Timestamp) else x
+                    )
+                )
+                # To Set a Threshhold
+                threshhold_fallback=""
+                if len(df) > 50:
+                    log("Threshhold hit")
+                    threshhold_fallback = (
+                            """As the dataset is too large to be fully included in the response, 
+                            we have limited the output to the top 50 rows to maintain readability 
+                            and efficiency.
+                            """
+                        )
+                    df = df.iloc[:50]
                 log(message="SQL Syntactically Correct", title="SQL Syntax Check")
                 #Changing datatypes
                 df.fillna(0,inplace=True)
-                df = ab.convert_yearperiod_to_string(df)
+                df = abc.convert_yearperiod_to_string(df)
                 if len(df) > 0:
 
-                    questions_df = vn.get_training_data()
+                    questions_df = abc.get_training_data()
                     existing_ques = questions_df[questions_df['training_data_type'] == 'sql']['question']
                     log(message="Entering Summary Generation Engine", title="Summary Check")
-                    summary=ab.generate_summary(LLMClient, OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME, query, df)
+                    summary = abc.generate_summary(
+                        LLMClient,
+                        OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME,
+                        query,
+                        df,
+                        threshhold_fallback,
+                    )
                     log(message="Summary Generation Successfull", title="Summary Check")
-                    if ab.should_generate_chart(df):
+                    if abc.should_generate_chart(df):
                         log(message="Entering Visualization Generation Engine", title="Visualization Check")
-                        fig_code, plot_suggestion = ab.generate_plotly_code(LLMClient=LLMClient, 
+                        fig_code, plot_suggestion = abc.generate_plotly_code(LLMClient=LLMClient, 
                                                                         LLMModelName=OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME, 
                                                                         question=query, 
                                                                         sql=generated_sql, 
                                                                         df=df)
-                        fig = ab.get_plotly_figure(plotly_code=fig_code, df=df, dark_mode=False)
+                        fig = abc.get_plotly_figure(plotly_code=fig_code, df=df, dark_mode=False)
 
                         log(message="Visualization Generation Successfull", title="Visualization Check")
 
@@ -223,16 +248,16 @@ def if_forecast(df:DataFrame, query:str):
         if 'FY' in df.columns:
             df['FY'] = df['FY'].astype(str)
         log(message="Entering Summary Generation Engine", title="Summary Check")
-        summary=ab.generate_summary(LLMClient, OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME, query, df)
+        summary=abc.generate_summary(LLMClient, OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME, query, df)
         log(message="Summary Generation Successful", title="Summary Check")
-        if ab.should_generate_chart(df):
+        if abc.should_generate_chart(df):
             # query += '.Keep YearPeriod in x axis, predicted Values column has the predicted data, ignore zeros and ensure the plot shows both actual and predicted values in one line, with different colors for each. For example, use a line plot where actual values are in one color and predicted values are in another color.'
             log(message="Entering Visualization Generation Engine", title="Visualization Check")
-            fig_code, plot_suggestion = ab.generate_plotly_code(LLMClient = LLMClient,
+            fig_code, plot_suggestion = abc.generate_plotly_code(LLMClient = LLMClient,
                                                                 LLMModelName = OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME, 
                                                                 question=query, 
                                                                 df=df)
-            fig = ab.get_plotly_figure(plotly_code=fig_code, df=df, dark_mode=False)
+            fig = abc.get_plotly_figure(plotly_code=fig_code, df=df, dark_mode=False)
 
             log(message="Visualization Generation Successful", title="Visualization Check")
 
@@ -385,7 +410,7 @@ def ask():
                                 'visualization_score': viz_extracted_scores
                             }
                     answer_list.append([message_id, child_question_id, summary, fig, formatted_code, df, exception, fig_python, prompt, query, header, con_score, all_score, status, reply])
-                summ_of_summ = ab.summary_of_summaries(LLMClient,
+                summ_of_summ = abc.summary_of_summaries(LLMClient,
                                                     OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME,
                                                     multi_summary, 
                                                     prompt)
@@ -457,12 +482,12 @@ def update_plot():
 
     try:
         log(message="Entering Redraw chart function to generate new chart.", title="Redraw Chart")
-        python_code_figure, df = ab.redraw_chart(LLMClient, 
+        python_code_figure, df = abc.redraw_chart(LLMClient, 
                                                  OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME, 
                                                  Response_id, 
                                                  Section_id, 
                                                  Updated_prompt)
-        figure = ab.get_plotly_figure(python_code_figure, df,dark_mode=False)
+        figure = abc.get_plotly_figure(python_code_figure, df,dark_mode=False)
         log(message="New chart generation successful.", title="Redraw Chart")
         figure = figure.to_json()
           
@@ -518,7 +543,7 @@ def ask_followup():
     summary, sql, df, main_question, child_question, header = get_data_followup(SQLQueryObj, Response_ID, Section_ID)
     log(message="Data Fetched Successfully.", title="Data Extraction for Previous Question")
     log(message=f"Raw question will pass to generate new question, Question: {follow_query}", title="Followup Question Generation Engine")
-    follow_up_prompt = ab.follow_up_question_generation(LLMClient, 
+    follow_up_prompt = abc.follow_up_question_generation(LLMClient, 
                                                         OpenAIConfigObj.OPENAI_LLM_DEPLOYMENT_NAME, 
                                                         child_question, 
                                                         follow_query, 

@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 import re
+import os
+import io
 from ..exception import DependencyError, ImproperlyConfigured, ValidationError
 import pandas as pd
 import pandas as pd
@@ -9,6 +11,18 @@ import plotly.graph_objects as go
 import requests
 import sqlparse
 import pyodbc
+from src.consts.project_prompts import Prompts
+from src.consts.project_sql import SQLQUERY
+from src.consts.project_constants import SQL_CONFIG
+from plotly.subplots import make_subplots
+from src.utils.logger import log,logError
+from src.utils.datastore import get_connection
+from sqlalchemy import text
+
+prompts_obj = Prompts()
+sql_query_obj = SQLQUERY()
+sql_config_obj = SQL_CONFIG()
+
 
 class AadiBase(ABC):
     def __init__(self, config=None):
@@ -22,6 +36,9 @@ class AadiBase(ABC):
         self.language = self.config.get("language", None)
         self.max_tokens = self.config.get("max_tokens", 14000)
         self.connection_string = config.get('connection_string',None)
+        self.prompts_obj = prompts_obj
+        self.sql_query_obj = sql_query_obj
+        self.connection_string=sql_config_obj.CONNECTION_STRING
 
     def log(self, message: str, title: str = "Info"):
         print(f"{title}: {message}")
@@ -184,6 +201,19 @@ class AadiBase(ABC):
         pass
 
     @abstractmethod
+    def get_training_data(self, **kwargs) -> list:
+        """
+        This method is used to get related documentation to a question.
+
+        Args:
+            question (str): The question to get related documentation for.
+
+        Returns:
+            list: A list of related documentation.
+        """
+        pass
+
+    @abstractmethod
     def add_question_sql(self, question: str, sql: str, **kwargs) -> str:
         """
         This method is used to add a question and its corresponding SQL query to the training data.
@@ -222,6 +252,7 @@ class AadiBase(ABC):
             str: The ID of the training data that was added.
         """
         pass
+    
 
     
 
@@ -401,56 +432,60 @@ class AadiBase(ABC):
 
         return response
     #-------------------------Summary-Generation--------------------------------#
-    def generate_summary(self, query: str, df: pd.DataFrame, **kwargs):
+    def create_summary_prompt(self,query,df):
+        """
+        This function is used to create summary prompt
 
-        user_msg = f"""
-            You are an expert Finance Analyst. Summarize the following data for the question: "{query}". Provide the summary in markdown format. Adhere strictly to the given instructions:
+        Args:
+            query: User input from front end of AaDI app
+            df : Dataframe generated via SQL
 
-            1. Understand the asked question and the provided dataset carefully before summarizing.
-            2. Do not merely list all the items in the dataframe as a summary.
-            3. Format 'YearPeriod' as "Year Period". Example: 'YearPeriod' 2023001 should be shown as "Year 2023 Period 001".
-            4. Display all numbers greater than 6 digits as millions.
-            5. Display all numbers greater than 9 digits as billions.
-            6. Limit all fractional numbers to a maximum of 2 decimal places.
+        Returns:
+            summary prompt
+        """
+        prompt = self.prompts_obj.prompt_create_summary(df = df,
+                                                       query = query)
+        return prompt
+    
+    def generate_summary(self, LLMClient, LLMModelName, query, df,threshhold_fallback):
+        """
+        This function is used to generate summary 
 
-            Dataset:
-            {df.to_markdown()}
-            """
+        Args:
+            LLMClient : LLM object used for setting up connection
+            LLMModelName : LLM model used for summary generation
+            query : User input from front end of LabGenAI app
+            df : Dataframe generated via SQL
 
-        system_msg = """write a summary of dataframe given, do not give any table, summarize all information in paragraph."""
-
-        message_log = [
-            self.system_message(system_msg),
-            self.user_message(user_msg),
-        ]
-
-        summary = self.submit_prompt(message_log, kwargs=kwargs)
-        
+        Returns:
+            A summary for the query given by user prompt 
+        """
+        prompt= self.create_summary_prompt(query,df)
+        chat_completion = LLMClient.chat.completions.create(
+            model=LLMModelName,
+            temperature=0,
+            messages=self.prompts_obj.prompt_generate_summary(
+                prompt=prompt, threshhold_fallback=threshhold_fallback
+            ),
+        )
+        summary=chat_completion.choices[0].message.content
+        if threshhold_fallback:
+            summary=threshhold_fallback+"\n"+summary
         return summary
     
-    def summary_of_summaries(self, summary_list: list, query: str, **kwargs) -> str:
-        user_msg =f"""
-                You are an expert Finance Analyst. Summarize the following list of summaries for the question provided.
+    def summary_of_summaries(self, LLMClient, LLMModelName, summary_list: list, query: str, **kwargs) -> str:
+        
 
-                - Summaries: ```{summary_list}```
-                - Question: ```{query}```
-
-                Please include only the information provided in the summary list. Do not add any other information or external context.
-                
-                follow this instructions:
-                1. If the summary is full of numbers, focus on material details and explain key insights.
-                2. Mention all major points. 
-                3. Do not miss any information provided into the list of summaries.
-         
-                """
-        system_msg = """write a concise summary of given list of summaries, do not give any table, summarize all information in paragraph."""
+        message = self.prompts_obj.prompt_summary_of_summaries(summary_list = summary_list,
+                                                             query = query) 
         message_log = [
-            self.system_message(system_msg),
-            self.user_message(user_msg),
+            self.system_message(message[1]),
+            self.user_message(message[0]),
         ]
         overall_summary = self.submit_prompt(message_log, kwargs=kwargs)
         
         return overall_summary
+    
     #------------------------db-connection------------------------------#
     # @abstractmethod
     # def get_connection(self, connection_string):
@@ -459,14 +494,16 @@ class AadiBase(ABC):
 
     #------------------------Visualization------------------------------#
     
-    def should_generate_chart(self, df: pd.DataFrame) -> bool:
+    @staticmethod
+    def should_generate_chart(df: pd.DataFrame) -> bool:
         """
         Example:
         ```python
         ab.should_generate_chart(df)
         ```
 
-        Checks if a chart should be generated for the given DataFrame. By default, it checks if the DataFrame has more than one row and has numerical columns.
+        Checks if a chart should be generated for the given DataFrame. By default, 
+        it checks if the DataFrame has more than one row and has numerical columns.
         You can override this method to customize the logic for generating charts.
 
         Args:
@@ -476,12 +513,13 @@ class AadiBase(ABC):
             bool: True if a chart should be generated, False otherwise.
         """
 
-        if len(df) > 1 and df.select_dtypes(include=['number']).shape[1] > 0:
+        if len(df) >= 1 and df.select_dtypes(include=['number']).shape[1] > 0:
             return True
 
         return False
     
-    def convert_yearperiod_to_string(self,df):
+    @staticmethod
+    def convert_yearperiod_to_string(df):
         # Identify columns related to yearperiod
         yearperiod_columns = [col for col in df.columns if 'Period' in col or 'Year' in col]
         
@@ -501,7 +539,33 @@ class AadiBase(ABC):
         
         return df
     
-    def _extract_python_code(self, markdown_string: str) -> str:
+    @staticmethod
+    def _extract_python_code(markdown_string: str) -> str:
+
+        """
+            Extracts the first Python code block from a given markdown string.
+
+            This function searches the provided markdown string for code blocks
+            specified with triple backticks (```) and labeled as Python. It
+            extracts and returns the content of the first Python code block found.
+            If no Python code blocks are found, it returns the original markdown string.
+
+            Args:
+                markdown_string (str): A string containing markdown content.
+
+            Returns:
+                str: The content of the first Python code block if found, otherwise
+                     the original markdown string.
+
+            Examples:
+                >>> markdown = "Some text\n```python\nprint('Hello, world!')\n```\nMore text"
+                >>> _extract_python_code(markdown)
+                "print('Hello, world!')"
+
+                >>> markdown = "Some text without code block"
+                >>> _extract_python_code(markdown)
+                "Some text without code block"
+            """
         # Regex pattern to match Python code blocks
         pattern = r"```[\w\s]*python\n([\s\S]*?)```|```([\s\S]*?)```"
 
@@ -516,17 +580,32 @@ class AadiBase(ABC):
 
         if len(python_code) == 0:
             return markdown_string
-
         return python_code[0]
 
-    def _sanitize_plotly_code(self, raw_plotly_code: str) -> str:
+    @staticmethod
+    def _sanitize_plotly_code(raw_plotly_code: str) -> str:
+        """
+            Removes the 'fig.show()' statement from the Plotly code.
+
+            Args:
+                raw_plotly_code (str): The Plotly code as a string.
+
+            Returns:
+                str: The sanitized Plotly code without the 'fig.show()' statement.
+        """
         # Remove the fig.show() statement from the plotly code
         plotly_code = raw_plotly_code.replace("fig.show()", "")
 
         return plotly_code
     
-    def plot_suggesion(self, question: str = None, df: pd.DataFrame = None, **kwargs
-                       ) -> str:
+    def plot_suggesion(
+        self,
+        LLMClient,
+        LLMModelName,
+        question: str = None,
+        df: pd.DataFrame = None,
+        **kwargs,
+    ) -> str:
 
         """
             Suggests the most suitable Plotly chart type for visualizing the results of a query.
@@ -545,77 +624,28 @@ class AadiBase(ABC):
 
         df_metadata = {c: dt for c, dt in zip(df.columns, df.dtypes)}
 
-        system_message = f"""You are an expert in data visualization using Plotly. Your task is to suggest the most suitable Plotly chart for visualizing the results of a query, based on the user's question and the given metadata.
+        prompt = self.prompts_obj.prompt_plot_sugguestion(question = question,
+                                                         df = df,
+                                                         df_metadata = df_metadata)
 
-                                    User Question: '{question}'
+        response = LLMClient.chat.completions.create(
+            model=LLMModelName,
+            messages=prompt,
+            stop=None,
+            temperature=0.0,
+        )
 
-                                    The resulting pandas DataFrame 'df' contains the following data: \n{df.to_markdown()}
-                                    Metadata: {df_metadata}
-
-                                    Based on the following guidelines for data visualization, suggest the most appropriate Plotly chart type:
-
-                                    1. **Looking for impact of a dimensions on another dimension:**
-                                        - **Pie Chart/Donut Charts:** For single dimention
-                                        - **Stacked Bar Charts:** For two dimensions.
-                                        - **Sunbrust Chart:** For more than two dimensions.
-
-                                    2. **Showing change over time or difference between periods/months :**
-                                        - **Water Fall chart:** show the difference between periods and contribution of variation by different dimensions.
-                                        - **Bar Chart:** Encodes value by the heights of bars from a baseline.
-                                        - **Line Chart:** Encodes value by the vertical positions of points connected by line segments. Useful when a baseline is not meaningful or if the number of bars would be overwhelming.
-                                        - **Box Plot:** Useful for showing the distribution of values for each time period.
-                                        - **Specialized Charts:** Financial domain charts like the candlestick chart or Kagi chart.
-
-                                    3. **Showing part-to-whole composition:**
-                                        - **Pie Chart/Donut Chart:** Represents the whole with a circle, divided into parts.
-                                        - **Stacked Bar Chart:** Divides each bar into sub-bars to show part-to-whole composition.
-                                        - **Stacked Area Chart:** Uses shading under the line to divide the total into sub-group values.
-                                        - **Hierarchical Charts:** Marimekko plot, treemap for showing hierarchical relationships.
-
-                                    4. **Looking at data distribution:**
-                                        - **Bar Chart:** Used for qualitative variables with discrete values.
-                                        - **Histogram:** Used for quantitative variables with numeric values.
-                                        - **Density Curve:** Smoothed estimate of the underlying distribution.
-                                        - **Violin Plot:** Compares numeric value distributions between groups using a density curve.
-                                        - **Box Plot:** Summarizes statistics for comparing distributions between groups.
-
-                                    5. **Comparing values between groups:**
-                                        - **Bar Chart:** Compares values by assigning a bar to each group.
-                                        - **Dot Plot:** Uses point positions to indicate value, useful without a vertical baseline.
-                                        - **Line Chart:** Compares values across time with one line per group.
-                                        - **Grouped Bar Chart:** Compares data across two grouping variables with multiple bars at each location.
-                                        - **Violin/Box Plot:** Compares data distributions between groups.
-                                        - **Funnel Chart:** Shows how quantities move through a process.
-                                        - **Bullet Chart:** Compares a true value to one or more benchmarks.
-
-                                    6. **Observing relationships between variables:**
-                                        - **Scatter Plot:** Standard for showing the relationship between two variables.
-                                        - **Bubble Chart:** Adds color, shape, or size to each point to indicate additional variables.
-                                        - **Connected Scatter Plot:** Connects points with line segments when a third variable represents time.
-                                        - **Dual-Axis Plot:** Combines a line chart and bar chart with a shared horizontal axis for a temporal third variable.
-                                        - **Heatmap:** Shows the relationship between groups for non-numeric variables or purely numeric data.
-
-                                    7. **Looking at geographical data:**
-                                        - **Choropleth:** Colors in geopolitical regions.
-                                        - **Cartogram:** Uses the size of each region to encode value, with some distortion in shapes and topology.
-
-                                    Analyze the provided data and metadata, and suggest the most appropriate Plotly chart type to effectively visualize the data.
-                                    """
-
-        user_message = "Can you suggest a plotly chart as following the query and meta-data. Do not answer with any explanations -- only chart name."
-        message_log = [
-            self.system_message(system_message),
-            self.user_message(user_message),
-        ]
-
-
-
-        suggested_chart = self.submit_prompt(message_log, kwargs=kwargs)
+        suggested_chart = response.choices[0].message.content
 
         return suggested_chart
     
-    def generate_plotly_code(self, question: str = None, sql: str = None, df: pd.DataFrame = None, **kwargs
-                            ) -> str:
+    def generate_plotly_code(self, LLMClient, 
+                             LLMModelName, 
+                             question: str = None, 
+                             sql: str = None, 
+                             df: pd.DataFrame = None, 
+                             **kwargs
+                             ) -> str:
 
         """
             Generates Plotly code for a chart based on a user question, SQL query, and DataFrame.
@@ -629,7 +659,7 @@ class AadiBase(ABC):
             Returns:
                 str: The generated Plotly Python code.
             """
-        plot_suggestion = self.plot_suggesion(question, df)
+        plot_suggestion = self.plot_suggesion(LLMClient, LLMModelName, question, df)
         df_metadata = {c: dt for c, dt in zip(df.columns, df.dtypes)}
 
         if question is not None:
@@ -645,26 +675,18 @@ class AadiBase(ABC):
         if 'YearPeriod' in df.columns:
             df['YearPeriod'] = df['YearPeriod'].astype(str)
 
-        # df = df[(df.select_dtypes(include=[np.number]) >= 0).all(axis=1)]
+        prompt = self.prompts_obj.prompt_generate_plotly_code(system_msg = system_msg,
+                                                             plot_suggestion = plot_suggestion)
 
-        user_msg = f"""Can you generate {plot_suggestion} Python plotly code to chart the results of the dataframe? 
-                        Assume the data is in a pandas dataframe called 'df'. 
-                        Instruction:
-                        1. If there is only one value in the dataframe, use an Indicator. 
-                        2. For PIE CHARTS, DONUT CHARTS, and WATERFALL CHARTS, if there are multiple values below 1, combine them into a single category named 'Others' before plotting.                                
-                        3. Do not use append function in dataframe instead use concat. for an example:
-                            Instead of "df = df.append('Profit_Center_Desc': 'Others', 'PercentageContribution': 'others_sum', ignore_index=True)"
-                            Use "pd.concat([df, pd.DataFrame('Profit_Center_Desc': ['Others'], 'PercentageContribution': ['others_sum'])], ignore_index=True)
-                        4. Include a title that summarizes the main insight from the data, make it bold, and left-justify it.
-                        5. If the chart has axes, make the axis titles bold. (For pie chart do not do.)
-                        6. Respond with only Python code. Do not answer with any explanations -- just the code."""
-            
-        message_log = [
-            self.system_message(system_msg),
-            self.user_message(user_msg),
-        ]
 
-        plotly_code = self.submit_prompt(message_log, kwargs=kwargs)
+        response = LLMClient.chat.completions.create(
+            model=LLMModelName,
+            messages=prompt,
+            stop=None,
+            temperature=0,
+        )
+
+        plotly_code = response.choices[0].message.content
 
         return self._sanitize_plotly_code(self._extract_python_code(plotly_code)), plot_suggestion
     
@@ -672,102 +694,187 @@ class AadiBase(ABC):
         self, plotly_code: str, df: pd.DataFrame, dark_mode: bool = True
     ) -> plotly.graph_objs.Figure:
         """
-        **Example:**
-        ```python
-        fig = ab.get_plotly_figure(
-            plotly_code="fig = px.bar(df, x='name', y='salary')",
-            df=df
-        )
-        fig.show()
-        ```
-        Get a Plotly figure from a dataframe and Plotly code.
+            Get a Plotly figure from a dataframe and Plotly code.
 
-        Args:
-            df (pd.DataFrame): The dataframe to use.
-            plotly_code (str): The Plotly code to use.
+            Args:
+                df (pd.DataFrame): The dataframe to use.
+                plotly_code (str): The Plotly code to use.
+                dark_mode (bool): Whether to use dark mode for the figure.
 
-        Returns:
-            plotly.graph_objs.Figure: The Plotly figure.
+            Returns:
+                plotly.graph_objs.Figure: The Plotly figure.
         """
-        ldict = {"df": df, "px": px, "go": go}
+        ldict = {"df": df, "px": px, "go": go, "make_subplots": make_subplots}
+
         try:
             exec(plotly_code, globals(), ldict)
+            fig = ldict.get("fig")
 
-            fig = ldict.get("fig", None)
-        except Exception as e:
-            # Inspect data types
-            numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
-            categorical_cols = df.select_dtypes(
-                include=["object", "category"]
-            ).columns.tolist()
+            if isinstance(fig, go.Figure):
+                if dark_mode:
+                    fig.update_layout(template="plotly_dark")
+                return fig
+        except (SyntaxError, NameError, TypeError) as e:
+            logError(f"Error executing Plotly code: {e}")
 
-            # Decision-making for plot type
-            if len(numeric_cols) >= 2:
-                # Use the first two numeric columns for a scatter plot
-                fig = px.scatter(df, x=numeric_cols[0], y=numeric_cols[1])
-            elif len(numeric_cols) == 1 and len(categorical_cols) >= 1:
-                # Use a bar plot if there's one numeric and one categorical column
-                fig = px.bar(df, x=categorical_cols[0], y=numeric_cols[0])
-            elif len(categorical_cols) >= 1 and df[categorical_cols[0]].nunique() < 10:
-                # Use a pie chart for categorical data with fewer unique values
-                fig = px.pie(df, names=categorical_cols[0])
+        # Fallback: Generate a basic chart
+        numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
+        categorical_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+        figures = []
+
+        if len(numeric_cols) == 1 and df.shape[0] == 1:
+            column_name = numeric_cols[0]
+            value = df[column_name].iloc[0]
+
+            # Convert value to a number if it's a string
+            try:
+                value = float(value)
+            except (ValueError, TypeError):  
+                value = None
+
+            # Handle missing values (None)
+            if value is None:
+                value = float("nan")  # Default value when data is missing
+                prefix = ""
+                suffix = ""
+                title_text = "<b>Conversion Error / No Data Available</b>"
             else:
-                # Default to a simple line plot if above conditions are not met
-                fig = px.line(df)
+                # Format the value properly
+                if value < 1000:
+                    value = round(value, 1)
+                    prefix = "$"
+                    suffix = ""
+                elif 1000 <= value < 1000000:
+                    value = round(value / 1000, 2)
+                    prefix = "$"
+                    suffix = "K"
+                else:
+                    value = round(value / 1000000, 2)
+                    prefix = "$"
+                    suffix = "M"
 
-        if fig is None:
-            return None
+                title_text = f"<b>{column_name}</b>"
+
+            # Create the KPI Card
+            fig = go.Figure(go.Indicator(
+                mode="number",
+                value=value,
+                number={
+                    "prefix": prefix,
+                    "suffix": suffix,
+                    "font": {"color": "#0000A0"}  # Blue for number color
+                },
+                title={
+                    "text": title_text,
+                    "font": {"color": "#00D7B9"}  # Green for title color
+                }
+            ))
+
+            # Update layout for proper alignment
+            fig.update_layout(
+                height=300,
+                margin=dict(l=20, r=20, t=40, b=20)
+            )
+
+            figures.append(fig)
+
+        elif len(numeric_cols) >= 2:
+            figures.append(px.scatter(df, x=numeric_cols[0], y=numeric_cols[1]))
+        elif len(numeric_cols) == 1 and len(categorical_cols) >= 1:
+            figures.append(px.bar(df, x=categorical_cols[0], y=numeric_cols[0]))
+        elif len(categorical_cols) >= 1 and df[categorical_cols[0]].nunique() < 10:
+            figures.append(px.pie(df, names=categorical_cols[0]))
+        else:
+            figures.append(px.line(df))
+
+        if len(figures) == 1:
+            fig = figures[0]
+        else:
+            rows = len(figures)
+            fig = make_subplots(rows=rows, cols=1, subplot_titles=[f"Plot {i+1}" for i in range(rows)])
+
+            for i, sub_fig in enumerate(figures):
+                for trace in sub_fig.data:
+                    fig.add_trace(trace, row=i+1, col=1)
+
+            fig.update_layout(height=300 * rows, showlegend=True)
 
         if dark_mode:
             fig.update_layout(template="plotly_dark")
 
         return fig
     
-    def redraw_chart(self, message_id:str, child_question_id:int, Updated_prompt:str, **kwargs):
+    def redraw_chart(self, LLMClient, LLMModelName, message_id: str, child_question_id: int, Updated_prompt: str):
+        """Redraws the chart based on updated prompts.
 
-        conn = pyodbc.connect(self.connection_string)
-        query = "SELECT * FROM ResponseUserData"
+        Args:
+            LLMClient: LLM object used for setting up connection.
+            LLMModelName: LLM model used for summary generation.
+            message_id (str): ID of the message.
+            child_question_id (int): ID of the child question.
+            Updated_prompt (str): Updated prompt.
 
-        # Execute the query and fetch the results into a DataFrame
-        df = pd.read_sql(query, conn)
-
-        # Close the connection
-        conn.close()
+        Returns:
+            Tuple: Updated Plotly code and Pandas DataFrame.
+        """
+        
+        response_user_table = os.getenv('RESPONSE_USER_DATA_TABLE')
+        query = f"""
+            SELECT TOP 1 Response_id, Section_id, DataFrame, python_code_figure
+            FROM {response_user_table}
+            WHERE Response_id = ? AND Section_id = ?
+            ORDER BY Version DESC
+        """
+        
+        try:
+            conn = get_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(query, (message_id, child_question_id))
+                row = cursor.fetchone()
+        except Exception as e:
+            raise
+        finally:
+            conn.close()
+        
+        if not row:
+            raise ValueError(f"No matching data found for Response_id: {message_id} and Section_id: {child_question_id}")
         
         
-        plotly_code = df[(df.Response_id==message_id) & (df.Section_id==child_question_id)].sort_values(by='Version').iloc[-1]['python_code_figure']
-        dataframe = df[(df.Response_id==message_id) & (df.Section_id==child_question_id)]['DataFrame'].reset_index(drop=True)[0]
-
+        # Convert row to dictionary
+        column_names = [column[0] for column in cursor.description]
+        latest_data = dict(zip(column_names, row))
         
-
-        dataframe = pd.read_json(dataframe)
+        # Extract necessary data
+        plotly_code = latest_data.get("python_code_figure")
+        dataframe_json = latest_data.get("DataFrame")
+        
+        if not plotly_code or not dataframe_json:
+            raise ValueError("Invalid data retrieved: Missing required fields")
+        
+        # Convert JSON string to Pandas DataFrame
+        dataframe = pd.read_json(io.StringIO(dataframe_json))
         dataframe = self.convert_yearperiod_to_string(dataframe)
-        df_metadata = {c: dt for c, dt in zip(dataframe.columns, dataframe.dtypes)}
-
-        system_msg = """You update plotly code basis on the instructions, old plotly code and dataframe"""
-        user_msg =f"""Update this plotly code ```{plotly_code}``` for the data: {dataframe} modified to new dataframe as per {Updated_prompt}, Metadata: {df_metadata}, based on the following instructions:
-
-                            1. {Updated_prompt} 
-                            2. Our dataframe “df” only contains the following columns: {dataframe.columns}. For any additional field or value required in plot, compute it accurately after understanding the requiremnet thoroughly.
-                            3. For PIE CHARTS, DONUT CHARTS, and 100% STACKED BAR CHARTS, if there are multiple small values, show top 10 and combine rest of the categories into a single category named 'Others' before plotting. 
-                            4. Do not use append function in dataframe instead use concat. for an example:
-                                Instead of "df = df.append('Profit_Center_Desc': 'Others', 'PercentageContribution': 'others_sum', ignore_index=True)"
-                                Use "pd.concat([df, pd.DataFrame('Profit_Center_Desc': ['Others'], 'PercentageContribution': ['others_sum'])], ignore_index=True)
-                            5. Include a title that summarizes the main insight from the data make it in bold.
-                            6. Axis titles should be in bold.
-                            7. Ensure all values and fields are shown in the graph with same labels as in dataframe. 
-                            8. Ensure the code runs without any errors.
-                            9. Ensure each and every variable is defined in the code you return
-                            10. Respond with only Python code. Do not answer with any explanations -- just the code."""
-
-        message_log = [
-            self.system_message(system_msg),
-            self.user_message(user_msg),
-        ]
-        new_plotly_code = self.submit_prompt(message_log, kwargs=kwargs)
         
-        return self._sanitize_plotly_code(self._extract_python_code(new_plotly_code)), dataframe
+        # Prepare metadata for prompt
+        df_metadata = {col: str(dtype) for col, dtype in dataframe.dtypes.items()}
+        messages = self.prompts_obj.prompt_redraw_chart(
+            plotly_code=plotly_code,
+            dataframe=dataframe,
+            Updated_prompt=Updated_prompt,
+            df_metadata=df_metadata
+        )
         
+        try:
+            chat_completion = LLMClient.chat.completions.create(
+                model=LLMModelName,
+                messages=messages
+            )
+            plotly_code_new = chat_completion.choices[0].message.content
+        except Exception as e:
+            raise
+        
+        return self._sanitize_plotly_code(self._extract_python_code(plotly_code_new)), dataframe
+
     #------------------------------------------------------db-connection----------------------------------------------------#
     
     def connect_to_mssql(self, odbc_conn_str: str):
@@ -877,7 +984,8 @@ class AadiBase(ABC):
             "You need to connect to a database first by running ab.connect_to_snowflake(), ab.connect_to_postgres(), similar function, or manually set ab.run_sql"
         )
     
-    def is_sql_valid(self, sql: str) -> bool:
+    @staticmethod
+    def is_sql_valid(sql: str) -> bool:
         """
         Example:
         ```python
@@ -908,30 +1016,44 @@ class AadiBase(ABC):
     #-----------------------------------Follow Up----------------------------------------------------------#
 
     #----------------------------------------FollowUp---------------------------------------------#
-    def follow_up_question_generation(self,previous_asked_question:str, current_question:str, sql:str = None, summary:str=None, **kwargs) -> str:
-        system_msg = f"""You are a helpful assistant highly skilled at rephrasing a question based on a previously asked question, AI-generated SQL, and the summary.
+    def follow_up_question_generation(self, LLMClient, LLMModelName, previous_asked_question:str, current_question:str, sql:str = None, summary:str=None) -> str:
+        """_summary_
+
+        Args:
+            LLMClient : LLM object used for setting up connection
+            LLMModelName : LLM model used for summary generation
+            query : User input from front end of AADI app
+            df : Dataframe generated via SQL
+        Returns:
+            The follow up questions
+        """
+        system_prompt = f"""You are a helpful assistant highly skilled at rephrasing a question based on a previously asked question, AI-generated SQL, and the summary.
                             Previously Asked Question:
                             {previous_asked_question}
                             AI Reply: """
         if sql is not None:
-            system_msg +=f"""SQL:
+            system_prompt +=f"""SQL:
                                 {sql}\n"""
         if summary is not None:
-            system_msg +=f"""
+            system_prompt +=f"""
                             Summary:
                             {summary}\n\n"""
 
-        system_msg +=f"""Question to rephrase: {current_question}"""
+        system_prompt +=f"""Question to rephrase: {current_question}"""
 
-        user_msg = "Give me a rephrased question based on the previous question and answers so that a TEXT TO SQL ENGINE CAN EXTRACT it. JUST GIVE ME THE QUESTION."
-
-        message_log = [
-            self.system_message(system_msg),
-            self.user_message(user_msg),
-        ]
-        rephased_question = self.submit_prompt(message_log, kwargs=kwargs)
+        messages = self.prompts_obj.prompt_follow_up_question_generation(system_prompt = system_prompt)
+                
+        response = LLMClient.chat.completions.create(
+                            model=LLMModelName,
+                            messages=messages,
+                            stop=None,
+                            temperature=0.2,
+                        )
         
-        return rephased_question
+        question = response.choices[0].message.content
+
+        return question
+
     
 
     #------------------------------------FORECAST--------------------------------------------------------------------------------#
@@ -1001,14 +1123,13 @@ class AadiBase(ABC):
 
         code = self.submit_prompt(message_log, kwargs=kwargs)
         code = self.extract_python_code(code)[0]
-        print(code)
+        
         if code:
             try:
                 local_vars = {'df': df}
                 exec(code, globals(), local_vars)
                 result_df = local_vars.get('df_filtered', None)
                 if result_df is not None:
-                    print(result_df)
                     return result_df, code
                 else:
                     return "Error: 'df_filtered' not found in the generated code", 400
