@@ -1,5 +1,107 @@
 import pandas as pd
+import json
 class Prompts:
+
+    def prompt_intent_llm_agent(self, **kwargs):
+        query=kwargs['query']
+        json_template = {
+        "task": "<aadi_nlp_to_sql_query|prohibited_nlp_to_sql|greeting|generic_question>",
+        "reason": "<Provide a brief explanation of why this task was selected>",
+        "rephrased_query":"<Rephrased query mapped to the correct quarter format as per the database>",
+        "original_query": query
+        }
+        json_string = json.dumps(json_template, indent=4)
+        return f"""
+            A. You are Query Classifier with 100% F1 score.
+            - Your task is to classify a user query into one of 4 categories <aadi_nlp_to_sql_query|prohibited_nlp_to_sql|greeting|generic_question>:
+                1. aadi_nlp_to_sql_query: 
+                    Examples:
+                    - **Query**: "Recommend 3 or 5 focus actions to increase GSV?"
+                        **Output**: `task:aadi_nlp_to_sql_query` 
+                    - **Query**: "What Is My  depreciation As Percentage Of GSV For Period 13 Year 2023?
+What Is My  depreciation As Percentage Of GSV For Period 13 Year 2023?"               
+                        **Output**: `task:aadi_nlp_to_sql_query`
+                    - **Query**: "What Is My Total NSV YTD for 2023 period 13?"               
+                        **Output**: `task:aadi_nlp_to_sql_query`
+                    - **Query**: "Compare Net Income For 2023 Period 4 With 2023 Period 2?"               
+                        **Output**: `task:aadi_nlp_to_sql_query`
+                    - **Query**: "Give Me Last 13 Period Prime Cost Since 2023 Period 2?"               
+                        **Output**: `task:aadi_nlp_to_sql_query`
+                    - **Query**: "Compare Value Of Prime Cost For P7 2023, With Past Trend?"               
+                        **Output**: `task:aadi_nlp_to_sql_query`
+                    - **Query**: "Give Me Decomposition Analysis For GSV For 2023 Period 7?"               
+                        **Output**: `task:aadi_nlp_to_sql_query`
+                    - **Query**: "Give Me Variance Analysis For GSV For 2023 Period 7?"               
+                        **Output**: `task:aadi_nlp_to_sql_query`
+                    - **Query**: "Give Me Treand Analysis For GSV For 2023 Period 7?"               
+                        **Output**: `task:aadi_nlp_to_sql_query`
+                2. **prohibited_nlp_to_sql**: Queries that attempt to insert, modify or delete data in a database, which should be restricted due to security, ethical, or technical reasons.  
+                    Examples:
+                    - **Query**: "Delete all records."  
+                        **Output**: `task:prohibited_nlp_to_sql`  
+                    - **Query**: "Insert blank records."  
+                        **Output**: `task:prohibited_nlp_to_sql`
+                    - **Query**: "Remove all test results from last year."  
+                        **Output**: `task:prohibited_nlp_to_sql`  
+                    - **Query**: "Update the test result for 98765 to 'negative'."  
+                        **Output**: `task:prohibited_nlp_to_sql`  
+                    - **Query**: "Change all pending lab reports to 'approved'."  
+                        **Output**: `task:prohibited_nlp_to_sql`  
+                    - **Query**: "Modify the turnaround time for all tests to 24 hours."  
+                        **Output**: `task:prohibited_nlp_to_sql`  
+
+                3. **greeting**: The query is a friendly or polite opening that does not require a detailed response beyond acknowledgment. These queries are commonly used to initiate a conversation in a casual or formal manner (e.g., "Hi, how are you?" or "Good morning!").  
+                    Examples:  
+                    - **Query**: "Hi, how are you?"  
+                        **Output**: `task:greeting`  
+                    - **Query**: "Hello!"  
+                        **Output**: `task:greeting`  
+                    - **Query**: "Good morning. What's up?"  
+                        **Output**: `task:greeting`  
+                    - **Query**: "Hey there!"  
+                        **Output**: `task:greeting`  
+                    - **Query**: "Good afternoon!"  
+                        **Output**: `task:greeting`  
+                    - **Query**: "Yo!"  
+                        **Output**: `task:greeting`  
+                    - **Query**: "How's it going?"  
+                        **Output**: `task:greeting`                      
+ 
+                4. **generic_question**: The query seeks general information, facts, or explanations on a broad range of topics without specifying a particular document or dataset. These questions can be about definitions, concepts, events, time, locations, or general knowledge (e.g., "What is the capital of France?" or "How does machine learning work?").  
+                    Examples:  
+                    - **Query**: "What is the capital of France?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "How does machine learning work?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "Who is the CEO of Tesla?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "What are the benefits of drinking water?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "Can you explain the theory of relativity?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "What is the time today?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "What day of the week is it?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "How many days are in a leap year?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "What is the population of India?"  
+                        **Output**: `task:generic_question`  
+                    - **Query**: "What is the weather like today?"  
+                        **Output**: `task:generic_question` 
+
+            Output your decision with 100% F1 score in the following JSON format:
+            ```json
+            {json_string}
+            ```
+    
+            Do not return anything outside this JSON format. 
+            
+            Here is the query: 
+            "{query}"
+            """ 
+
+
     def prompt_generate_summary_len_df_ge_two(self, **kwargs):
         """_summary_
 

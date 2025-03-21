@@ -24,7 +24,7 @@ import src.utils.forecast as fc
 from src.consts.project_prompts import Prompts
 from src.consts.project_sql import SQLQUERY
 from src.consts.project_constants import OPENAI_CONFIG,GEN_SQL
-
+from src.utils.intent_llm_agent import intent_llm,intent_reply
 from pandas import DataFrame
 
 app = Flask(__name__)
@@ -66,9 +66,43 @@ def generate_sql_and_df(query:str,is_mind_map:bool=False)->tuple:
     Returns:
         Plot suggestions and confidence scores and SQL features
     """
-    plot_suggestion = 'NA'
-    # reply=""
-    # excep=""
+    generated_sql="NA"
+    formatted_code = "NA"
+    df = {}
+    summary = "NA"
+    fig = ""
+    status = False
+    reply = "NA"
+    exception = "NA"
+    fig_python = "NA"
+    header=""
+    con_score = "NA"
+    plot_suggestion="NA"
+    viz_extracted_scores = "NA"
+    sql_scores = "NA"
+
+    # Cleaning the query
+    query = abc.clean_and_format_query(query)
+
+    # Intent LLM Implementation
+    intent=intent_llm(query=query)
+    reply=intent_reply(intent=intent)
+
+    if intent.task != "aadi_nlp_to_sql_query":        
+        generate_sql_and_df_object = GEN_SQL(
+            generated_sql, formatted_code, df, summary, fig, status, reply, 
+            exception, fig_python, header, con_score, query, plot_suggestion, 
+            viz_extracted_scores, sql_scores
+        )
+
+        generate_sql_and_df_tuple=tuple(vars(generate_sql_and_df_object).values())
+        log(f"This is Intent LLM generic response: {generate_sql_and_df_tuple}")
+        return generate_sql_and_df_tuple
+
+    if intent.rephrased_query:
+        query=intent.rephrased_query
+        log(query,"Rephrased Query")
+    
     retry = 2
     if is_mind_map == True:
         header = query[1]
@@ -322,7 +356,7 @@ def ask():
     # Checking for Cache only if fresh query from UI is generated and not from the ask_llmeval api
     if uncache_llmeval == False:
         cache_response = get_the_cached_response(SQLQueryObj, prompt.lower())
-        iter = 1
+
     if len(cache_response) > 0 or cache_response==None:
         log(message="Query Cache Hit: Cache Query Found", title="Checking for Cached Queries")
         for row in cache_response:
@@ -362,6 +396,7 @@ def ask():
             log(message="Cached results stored in database successfully", title="Cached Data Storing")
         response['response']['summary_of_summaries'] = summ_of_summ
         return jsonify(response)
+    
     elif len(cache_response)<1 or uncache_llmeval==True:
         log(message="Query Cache Miss: Cache Query Not Found. Redirecting to LLMs", title="Checking for Cached Queries")
         try:

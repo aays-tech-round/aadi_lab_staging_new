@@ -17,8 +17,7 @@ from src.consts.project_constants import SQL_CONFIG
 from plotly.subplots import make_subplots
 from src.utils.logger import log,logError
 from src.utils.datastore import get_connection
-from sqlalchemy import text
-
+import string
 prompts_obj = Prompts()
 sql_query_obj = SQLQUERY()
 sql_config_obj = SQL_CONFIG()
@@ -983,6 +982,38 @@ class AadiBase(ABC):
         raise Exception(
             "You need to connect to a database first by running ab.connect_to_snowflake(), ab.connect_to_postgres(), similar function, or manually set ab.run_sql"
         )
+    
+    @staticmethod
+    def clean_and_format_query(query):
+        """
+        Cleans and formats a query string.
+
+        - Removes unwanted characters while allowing a defined set of special characters.
+        - Strips extra spaces.
+        - Ensures the query ends with a '?' by removing trailing dots if necessary.
+
+        Args:
+            query (str): The input query string.
+
+        Returns:
+            str: The cleaned and properly formatted query.
+        """
+        # Extend allowed characters from string.printable
+        allowed_chars = set(string.printable) | set("`~!@#$%^&*()_+-=[]{};':\",.<>/?")
+
+        # Remove characters not in the allowed set
+        query = "".join(char for char in query if char in allowed_chars)
+
+        # Trim spaces
+        query = query.strip()
+
+        # Ensure the query ends with '?'
+        if not query.endswith("?"):
+            query = re.sub(r"\.+$", "", query)  # Remove trailing dots
+            query += "?"
+
+        return query
+
     
     @staticmethod
     def is_sql_valid(sql: str) -> bool:
